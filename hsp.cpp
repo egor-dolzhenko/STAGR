@@ -23,6 +23,79 @@ HSPs::HSPs()
 	//hsps = QVector< QMap<QString,QString> >(0);
 }
 
+HSPs::HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds)
+{
+
+	for(unsigned i = 0; i < hObj->hsps.size(); ++i)
+	{
+		QMap<QString,QString> hsp = hObj->hsps.at(i);
+		QString precursorId = hsp["qseqid"];
+ 		QString productId = hsp["sseqid"];
+		if( precursorIds.contains(precursorId) && productIds.contains(productId) )
+		{
+			QMapIterator<QString, QString> j(hObj->hsps.at(i));
+			
+			QMap<QString, QString> hspCopy;// = new QMap<QString, QString>(0);
+			
+			while (j.hasNext())
+			{
+     			j.next();
+     			hspCopy[j.key()] = j.value(); //(*hspCopy)
+     			//qDebug() << j.key() << ": " << j.value();
+ 			}
+ 			
+ 			hsps.append(hspCopy);
+		}
+		
+		//for(unsigned j = 0; j < hObj->hsps.at(i).size(); ++j)
+		//{
+		//	qDebug() << hObj->hsps.at(i)["qseqid"];
+		//}
+	}
+
+// 	alignmentsPairContigs = new QVector< QMap<QString,QString> >(0);
+// 	alignmentsDirection = new QVector<Direction>(0);
+// 	
+// 	QString qseqidValue("");
+// 	QString sseqidValue("");
+// 	for(unsigned i = 0; i < filteredAlignments->size(); ++i)
+// 	{
+// 		qseqidValue = filteredAlignments->at(i)["qseqid"];
+// 		sseqidValue = filteredAlignments->at(i)["sseqid"];
+// 		if( (qseqidValue == queryName) && (subjectNames.contains(sseqidValue)) )
+// 		{
+// 			
+// 			unsigned qstartValue = filteredAlignments->at(i)["qstart"].toInt();
+// 			unsigned qendValue = filteredAlignments->at(i)["qend"].toInt();
+// 			unsigned sstartValue = filteredAlignments->at(i)["sstart"].toInt();
+// 			unsigned sendValue = filteredAlignments->at(i)["send"].toInt();
+// 			QString qendValueString(qendValue);
+// 			const QString qstartValueString(qstartValue);
+// 			if(qstartValue > qendValue)
+// 			{
+// 				(*filteredAlignments)[i].insert("qstart", QString::number(qendValue));
+// 				(*filteredAlignments)[i].insert("qend", QString::number(qstartValue));
+// 				alignmentsDirection->append(LEFT);
+// 			}
+// 			else if(sstartValue > sendValue)
+// 			{
+// 				(*filteredAlignments)[i].insert("sstart", QString::number(sendValue));
+// 				(*filteredAlignments)[i].insert("send", QString::number(sstartValue));
+// 				alignmentsDirection->append(LEFT);
+// 			}
+// 			else
+// 			{
+// 				alignmentsDirection->append(RIGHT);
+// 			}
+// 
+// 			alignmentsPairContigs->append(filteredAlignments->at(i)); //QMap<QString,QString>()
+// 		}
+// 	}	
+// 	
+// 	QStringList header;
+// 	header = filteredAlignments->at(0).keys();
+}
+
 QString HSPs::loadData(PyObject *output)
 {
 
@@ -70,47 +143,7 @@ QString HSPs::loadData(PyObject *output)
 
 QVector< QMap<QString,QString> > *HSPs::matchesToPrecursorId(QString id)
 {
-// 	alignmentsPairContigs = new QVector< QMap<QString,QString> >(0);
-// 	alignmentsDirection = new QVector<Direction>(0);
-// 	
-// 	QString qseqidValue("");
-// 	QString sseqidValue("");
-// 	for(unsigned i = 0; i < filteredAlignments->size(); ++i)
-// 	{
-// 		qseqidValue = filteredAlignments->at(i)["qseqid"];
-// 		sseqidValue = filteredAlignments->at(i)["sseqid"];
-// 		if( (qseqidValue == queryName) && (subjectNames.contains(sseqidValue)) )
-// 		{
-// 			
-// 			unsigned qstartValue = filteredAlignments->at(i)["qstart"].toInt();
-// 			unsigned qendValue = filteredAlignments->at(i)["qend"].toInt();
-// 			unsigned sstartValue = filteredAlignments->at(i)["sstart"].toInt();
-// 			unsigned sendValue = filteredAlignments->at(i)["send"].toInt();
-// 			QString qendValueString(qendValue);
-// 			const QString qstartValueString(qstartValue);
-// 			if(qstartValue > qendValue)
-// 			{
-// 				(*filteredAlignments)[i].insert("qstart", QString::number(qendValue));
-// 				(*filteredAlignments)[i].insert("qend", QString::number(qstartValue));
-// 				alignmentsDirection->append(LEFT);
-// 			}
-// 			else if(sstartValue > sendValue)
-// 			{
-// 				(*filteredAlignments)[i].insert("sstart", QString::number(sendValue));
-// 				(*filteredAlignments)[i].insert("send", QString::number(sstartValue));
-// 				alignmentsDirection->append(LEFT);
-// 			}
-// 			else
-// 			{
-// 				alignmentsDirection->append(RIGHT);
-// 			}
-// 
-// 			alignmentsPairContigs->append(filteredAlignments->at(i)); //QMap<QString,QString>()
-// 		}
-// 	}	
-// 	
-// 	QStringList header;
-// 	header = filteredAlignments->at(0).keys();
+
 }
 
 float HSPs::getAverage(QString precursorId, QString productId, QString fieldName)
@@ -158,3 +191,4 @@ unsigned HSPs::numHSPs(QString precursorId, QString productId)
 	
 	return numHspsFound;
 }
+

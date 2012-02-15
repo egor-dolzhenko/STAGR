@@ -25,7 +25,7 @@
 using namespace std;
 
 MultipleMatchesView::MultipleMatchesView(QWidget* parent, int *array1, int *array2, 
-				int *primaryArray, int *matchesSubjectEnd, int queryLength, int subjectLength, 
+				int *primaryArray, int *matchesSubjectEnd, //int queryLength, int subjectLength, 
 				int numberOfRelevantRecords, QString *matchesSubjectNames)
 	:QGraphicsView(parent)
 {
@@ -33,8 +33,8 @@ MultipleMatchesView::MultipleMatchesView(QWidget* parent, int *array1, int *arra
 	myQueryEnd = array2;
 	mySubjectStart = primaryArray;
 	mySubjectEnd = matchesSubjectEnd;
-	mySubjectLength = subjectLength;
-	myQueryLength = queryLength;
+	//mySubjectLength = subjectLength;
+	//myQueryLength = queryLength;
 	
 	scene = new QGraphicsScene(this);
 	setAlignment(Qt::AlignCenter);

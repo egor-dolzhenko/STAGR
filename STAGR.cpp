@@ -79,13 +79,7 @@ StagrMainWindow::StagrMainWindow(QWidget *parent)
 	
 	connect(settingsAction, SIGNAL(triggered()), this, 
 			SLOT(openSettingsDialog()));
-			
-	//connect( getPrecursorFilenameAction, SIGNAL(triggered()), this,
-	//		SLOT(getPrecursorFilename())); //loadSequencesAction
-
-	//connect( getProductFilenameAction, SIGNAL(triggered()), this,
-	//		SLOT(getProductFilename()));
-	
+				
 	//blastn is the default local alignment algorithm
 	connect(startAction, SIGNAL(triggered()), this,
 			SLOT(runStagr()));
@@ -178,7 +172,6 @@ bool StagrMainWindow::runFilteringAlgorithm(QString input, QString algorithmFile
 	PyObject *argument = PyString_FromString( input.toStdString().c_str() );
 	PyObject *list;
 	PyObject *output;
-	//PyObject *dictionary;
 	
 	list = NULL;
 	
@@ -360,37 +353,38 @@ void StagrMainWindow::openSettingsDialog()
 void StagrMainWindow::openMDialogMultipleMatches()
 {
 	//table
-	const QModelIndexList list = table->selectionModel()->selectedRows();//.indexes();
+	const QModelIndexList list = table->selectionModel()->selectedRows();
 	if( list.count() == 0 )
 		return;
 		
 	unsigned firstRow = list.at(0).row();
-	QString nameQuery = hspsStats->at(firstRow)[qseqid];
-	QString nameReference = hspsStats->at(firstRow)[sseqid];
+	QString precursorId = hspsStats->at(firstRow)[qseqid];
+	QString productId = hspsStats->at(firstRow)[sseqid];
 
 	QSet<QString> nameReferences;
-	unsigned numberOfRelevantAlignments = 0;
+	//unsigned numberOfRelevantAlignments = 0;
 	for (unsigned i = 0; i < list.count(); i++)
 	{
 		QModelIndex index = list.at(i);
 		unsigned row = index.row();
-		if (nameQuery != hspsStats->at(row)[qseqid])
+		if (precursorId != hspsStats->at(row)[qseqid])
 		{
 			alert("only one query contig is allowed");
 			return;
 		}
-		numberOfRelevantAlignments = numberOfRelevantAlignments + hspsStats->at(row)[2].toInt();
+		//numberOfRelevantAlignments = numberOfRelevantAlignments + hspsStats->at(row)[2].toInt();
 		nameReferences.insert(hspsStats->at(row)[sseqid]);
 	}
 	
 	QSetIterator<QString> i(nameReferences);
 	if(multipleMatchesDialog != NULL)
 		delete multipleMatchesDialog;
-	multipleMatchesDialog = new MultipleMatchesDialog(this, nameQuery, nameReferences, 
-													  pullOutFastaSequence(precursorFilename, nameQuery), 
-													  pullOutFastaSequence(productFilename, nameReference),  
-													  filteredAlignments, numberOfRelevantAlignments, 
-													  1000, 1000, precursorFilename, productFilename); //"Query"
+	multipleMatchesDialog = new MultipleMatchesDialog(this, hsps, precursorId, nameReferences, 
+													  pullOutFastaSequence(precursorFilename, precursorId), 
+													  pullOutFastaSequence(productFilename, productId),  
+													  filteredAlignments//, //numberOfRelevantAlignments, 
+													  //1000, 1000
+													  ); //"Query" , precursorFilename, productFilename
 													  
 	multipleMatchesDialog->show();
 	multipleMatchesDialog->raise();
@@ -418,8 +412,6 @@ void StagrMainWindow::getAlignmentsSummary()
 	if( hspsStats != NULL) delete hspsStats;
 	hspsStats = new QVector<QStringList>;
 
-	//hsps->getAverage("MIC1", "MAC1", "length");
-	
 	QString precursorId;
 	QString productId;
 	
@@ -439,78 +431,21 @@ void StagrMainWindow::getAlignmentsSummary()
 			productId = productIdIterator.next();
 			
 			unsigned numHSPs = hsps->numHSPs(precursorId, productId);
-			
-			//qDebug() << precursorId << " " << productId << " " << aveLength;
-			
+						
 			if( numHSPs != 0 )
 			{
 				float aveLength = hsps->getAverage(precursorId, productId, "length");
 				float aveGaps = hsps->getAverage(precursorId, productId, "gapopen");
 				float aveMismatch = hsps->getAverage(precursorId, productId, "mismatch");
-				//int 
-				//float aveGaps = hsps->getAverage(precursorId, productId, "gapopen");
 				
-				QStringList stats; //= new QStringList;
-				stats << precursorId << productId << QString::number(numHSPs) << QString::number(aveLength) 
-					  << QString::number(aveGaps) << QString::number(aveMismatch);
+				QStringList stats;
+				stats << precursorId << productId << QString::number(numHSPs) << QString::number(aveLength, 'f', 1) 
+					  << QString::number(aveMismatch, 'f', 1) << QString::number(aveGaps, 'f', 1);
 				hspsStats->append(stats);
 			}
 			
 		}
 		
-	}
-	
-	
-	QMap<QString, unsigned> map;
-	
-	QString name = "";
-	
-	for(unsigned i = 0; i < numAlignments; i++)
-	{
-		//unsafe when id's contain tabs
-		name = filteredAlignments->at(i)["qseqid"] + "\t" + filteredAlignments->at(i)["sseqid"];
-		if (map.contains(name))
-		{
-			map[name] = map[name]++;
-		} 
-		else
-		{
-			map[name] = 1;
-		}
-	}
-	
-	numAlignmentsSummary = map.keys().length();
-	
-	alignmentsSummary = new QStringList[numAlignmentsSummary];
-	
-	unsigned j = 0;
-	
-	QMapIterator<QString, unsigned> i(map);
-	
-	while (i.hasNext())
-	{
-		i.next();
-		QStringList namelist;
-		namelist = i.key().split('\t');
-		
-		//get average
-		unsigned totalGaps = 0;
-		unsigned mismatches = 0;
-		unsigned numberMatches = 0;
-		unsigned totalLength = 0;
-		
-		for(unsigned id = 0; id < filteredAlignments->size(); ++id)
-		{
-			if( (filteredAlignments->at(id)["qseqid"] == namelist[0]) && (filteredAlignments->at(id)["sseqid"] == namelist[1]) )
-			{
-				totalGaps = totalGaps + filteredAlignments->at(id)["gapopen"].toInt();
-				mismatches = mismatches + filteredAlignments->at(id)["mismatch"].toInt();
-				numberMatches++;
-			}
-		}
-
-		alignmentsSummary[j] << namelist[0] << namelist[1] << QString::number(i.value()) << QString::number(float(totalGaps)/float(numberMatches), 'f', 2) << QString::number((float)mismatches/(float)numberMatches, 'f', 2);
-		j++;
 	}
 }
 
@@ -545,18 +480,14 @@ void StagrMainWindow::createTable()
 	}
 	
 	QStringList header;
-	header << "query" << "subject" << "number of HSPs" << "ave length" << "ave mismatch" << "ave gap";
+	header << "Precursor" << "Product" << "Number of HSPs" << "Ave. Length" << "Ave. Mismatch" << "Ave. Gap";
 	table = new Table(NULL, header, hspsStats);
-	
-	
-	//header << "query" << "subject" << "number of matches" << "ave mismatch" << "ave gap";
-	//table = new Table(NULL, header, alignmentsSummary, numAlignmentsSummary);
-	
+		
 	table->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
 	mainLayout->addWidget(table);
 	
-	connect(table, SIGNAL(doubleClicked(QModelIndex)), this, //
-			SLOT(openMDialogMultipleMatches())); //QModelIndex
+	connect(table, SIGNAL(doubleClicked(QModelIndex)), this,
+			SLOT(openMDialogMultipleMatches())); 
 
 }
 

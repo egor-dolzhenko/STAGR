@@ -32,7 +32,7 @@ class MultipleMatchesView : public QGraphicsView
 public: 
 	MultipleMatchesView(QWidget* parent, int *matchesStart, int *matchesEnd, 
 				int *matchesSubjectStart, int *matchesSubjectEnd, 
-				int queryLength, int subjectLength, int numberOfRelevantRecords, 
+				int queryLength, //int subjectLength, int numberOfRelevantRecords, 
 				QString *matchesSubjectNames);
 	
 protected:
@@ -50,8 +50,8 @@ private:
 	int *myQueryEnd;
 	int *mySubjectStart;
 	int *mySubjectEnd;
-	int mySubjectLength;
-	int myQueryLength;
+	//int mySubjectLength;
+	//int myQueryLength;
 	vector<int> *qStartsArray;
 	vector<int> *sStartsArray;
 	vector<int> *qEndsArray;

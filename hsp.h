@@ -31,6 +31,7 @@ class HSPs
 public:
 	//Constructor
 	HSPs();
+	HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds);
 	QString loadData(PyObject *output);
 	QVector< QMap<QString,QString> > *matchesToPrecursorId(QString id);
 	float getAverage(QString precursorId, QString productId, QString fieldName);
@@ -41,5 +42,7 @@ private:
 	QVector< QMap<QString,QString> > hsps;
 
 };
+
+
 
 #endif //HSP_H

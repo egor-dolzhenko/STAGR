@@ -190,13 +190,8 @@ private:
 	unsigned numAlignments;
 	
 	//Summary about alignments between pairs of contigs
-	QStringList* alignmentsSummary;
-	
 	QVector<QStringList> *hspsStats;
-	
-	//Number of elements in alignmentsSummary array
-	unsigned numAlignmentsSummary;
-	
+		
 	//Lengths of query contigs
 	QMap <QString, unsigned> queryLengths;
 	

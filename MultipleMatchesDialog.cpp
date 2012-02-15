@@ -19,11 +19,19 @@
 #include "MultipleMatchesDialog.h"
 
 
-MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, QString queryName, QSet<QString> subjectNames,
-							 QString querySequence, QString subjectSequence, QVector< QMap<QString,QString> > *filteredAlignments,
-							 int numberOfRelevantRecords, int queryLength, int subjectLength, QString filenameQueryFile, QString filenameReferenceFile)
+MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QString queryName, QSet<QString> subjectNames,
+							 QString querySequence, QString subjectSequence, QVector< QMap<QString,QString> > *filteredAlignments//,
+							 //int numberOfRelevantRecords, 
+							 //int queryLength, int subjectLength
+							 ) //, QString filenameQueryFile, QString filenameReferenceFile
 	:QDialog(parent)
 {
+
+	QSet<QString> precursorNames;
+	precursorNames.insert(queryName);
+	//QStringList productNames;
+	
+	HSPs newHsps(hsps, precursorNames, subjectNames);
 
 	alignmentsPairContigs = new QVector< QMap<QString,QString> >(0);
 	alignmentsDirection = new QVector<Direction>(0);
@@ -31,7 +39,7 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, QString queryName,
 	QString qseqidValue("");
 	QString sseqidValue("");
 	for(unsigned i = 0; i < filteredAlignments->size(); ++i)
-	{
+	{ 
 		qseqidValue = filteredAlignments->at(i)["qseqid"];
 		sseqidValue = filteredAlignments->at(i)["sseqid"];
 		if( (qseqidValue == queryName) && (subjectNames.contains(sseqidValue)) )
@@ -121,7 +129,8 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, QString queryName,
 
 	
 	multipleMatchesView = new MultipleMatchesView(NULL, matchesStart, matchesEnd, matchesSubjectStart,
-							 matchesSubjectEnd, queryLength, subjectLength, numAlignments, matchesSubjectNames); 
+							 matchesSubjectEnd, //queryLength, subjectLength, 
+							 numAlignments, matchesSubjectNames); 
 	
 	mainTab->addTab(multipleMatchesView, "Match map");
 	QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -144,74 +153,74 @@ MultipleMatchesDialog::~MultipleMatchesDialog()
 	delete alignmentsPairContigs;
 }
 
-void MultipleMatchesDialog::bubbleSortQuerySubjectRecordsByQuery()
-{
-	bool change = true;
-	QStringList stringList;
-	while(change == true)
-	{
-		change = false;
-		for(int i = 0; i < myNumberOfRelevantRecords - 1; i++)
-		{
-			if(querySubjectRecords[i][qstart].toInt() > querySubjectRecords[i+1][qstart].toInt())
-			{
-				stringList = querySubjectRecords[i];
-				querySubjectRecords[i] = querySubjectRecords[i+1];
-				querySubjectRecords[i+1] = stringList;
-				change = true;
-			}
-		}
-	}
-}
+// void MultipleMatchesDialog::bubbleSortQuerySubjectRecordsByQuery()
+// {
+// 	bool change = true;
+// 	QStringList stringList;
+// 	while(change == true)
+// 	{
+// 		change = false;
+// 		for(int i = 0; i < myNumberOfRelevantRecords - 1; i++)
+// 		{
+// 			if(querySubjectRecords[i][qstart].toInt() > querySubjectRecords[i+1][qstart].toInt())
+// 			{
+// 				stringList = querySubjectRecords[i];
+// 				querySubjectRecords[i] = querySubjectRecords[i+1];
+// 				querySubjectRecords[i+1] = stringList;
+// 				change = true;
+// 			}
+// 		}
+// 	}
+// }
 
-void MultipleMatchesDialog::bubbleSortQuerySubjectRecordsBySubject()
-{
-	bool change = true;
-	QStringList stringList;
-	while(change == true)
-	{
-		change = false;
-		for(int i = 0; i < myNumberOfRelevantRecords - 1; i++)
-		{
-			if(querySubjectRecords[i][sstart].toInt() > querySubjectRecords[i+1][sstart].toInt())
-			{
-				stringList = querySubjectRecords[i];
-				querySubjectRecords[i] = querySubjectRecords[i+1];
-				querySubjectRecords[i+1] = stringList;
-				change = true;
-			}
-		}
-	}
-}
+// void MultipleMatchesDialog::bubbleSortQuerySubjectRecordsBySubject()
+// {
+// 	bool change = true;
+// 	QStringList stringList;
+// 	while(change == true)
+// 	{
+// 		change = false;
+// 		for(int i = 0; i < myNumberOfRelevantRecords - 1; i++)
+// 		{
+// 			if(querySubjectRecords[i][sstart].toInt() > querySubjectRecords[i+1][sstart].toInt())
+// 			{
+// 				stringList = querySubjectRecords[i];
+// 				querySubjectRecords[i] = querySubjectRecords[i+1];
+// 				querySubjectRecords[i+1] = stringList;
+// 				change = true;
+// 			}
+// 		}
+// 	}
+// }
 
 
-int MultipleMatchesDialog::smallestValueOfParameter(recordType param)
-{
-	int minValue = querySubjectRecords[0][param].toInt();
-	for(int i = 0; i < myNumberOfRelevantRecords; i++)
-	{
-		if(querySubjectRecords[i][param].toInt() < minValue)
-		{
-			minValue = querySubjectRecords[i][param].toInt();
-		}
-	}
-	
-	return minValue;
-}
-
-int MultipleMatchesDialog::largestValueOfParameter(recordType param)
-{
-	int maxValue = querySubjectRecords[0][param].toInt();
-	for(int i = 0; i < myNumberOfRelevantRecords; i++)
-	{
-		if(querySubjectRecords[i][param].toInt() > maxValue)
-		{
-			maxValue = querySubjectRecords[i][param].toInt();
-		}
-	}
-	
-	return maxValue;
-}
+// int MultipleMatchesDialog::smallestValueOfParameter(recordType param)
+// {
+// 	int minValue = querySubjectRecords[0][param].toInt();
+// 	for(int i = 0; i < myNumberOfRelevantRecords; i++)
+// 	{
+// 		if(querySubjectRecords[i][param].toInt() < minValue)
+// 		{
+// 			minValue = querySubjectRecords[i][param].toInt();
+// 		}
+// 	}
+// 	
+// 	return minValue;
+// }
+// 
+// int MultipleMatchesDialog::largestValueOfParameter(recordType param)
+// {
+// 	int maxValue = querySubjectRecords[0][param].toInt();
+// 	for(int i = 0; i < myNumberOfRelevantRecords; i++)
+// 	{
+// 		if(querySubjectRecords[i][param].toInt() > maxValue)
+// 		{
+// 			maxValue = querySubjectRecords[i][param].toInt();
+// 		}
+// 	}
+// 	
+// 	return maxValue;
+// }
 
 unsigned MultipleMatchesDialog::smallestValue(QString id)
 {

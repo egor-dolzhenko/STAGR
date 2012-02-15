@@ -21,6 +21,7 @@
 #include "Table.h"
 #include "sequenceView.h"
 #include "multipleMatchesView.h"
+#include "hsp.h"
 
 enum recordType {qseqid, sseqid, pident, length, MISMATCH, gapopen, 
 				 qstart, qend, sstart, send, evalue, bitscore};
@@ -32,10 +33,12 @@ class MultipleMatchesDialog : public QDialog
 	Q_OBJECT
 
 public:
-	MultipleMatchesDialog(QWidget *parent, QString queryName, QSet<QString> subjectNames,
+	MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QString queryName, QSet<QString> subjectNames,
 				  QString querySequence, QString subjectSequence,
-				  QVector< QMap<QString,QString> > *filteredAlignments,
-				  int numberOfRelevantRecords, int queryLength, int subjectLength, QString filenameQueryFile, QString filenameReferenceFile);
+				  QVector< QMap<QString,QString> > *filteredAlignments//,
+				  //int numberOfRelevantRecords, 
+				  //int queryLength, int subjectLength
+				  ); //, QString filenameQueryFile, QString filenameReferenceFile
 	~MultipleMatchesDialog();
 private:
 	QTabWidget *mainTab;
@@ -55,10 +58,10 @@ private:
 	SequenceView *subjectView;
 	MultipleMatchesView *multipleMatchesView;
 	int myNumberOfRelevantRecords;
-	void bubbleSortQuerySubjectRecordsByQuery();
-	void bubbleSortQuerySubjectRecordsBySubject();
-	int smallestValueOfParameter(recordType param);
-	int largestValueOfParameter(recordType param);
+	//void bubbleSortQuerySubjectRecordsByQuery();
+	//void bubbleSortQuerySubjectRecordsBySubject();
+	//int smallestValueOfParameter(recordType param);
+	//int largestValueOfParameter(recordType param);
 	QVector< QMap<QString,QString> > *alignmentsPairContigs;
 	unsigned smallestValue(QString id);
 	unsigned largestValue(QString id);
