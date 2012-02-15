@@ -41,8 +41,10 @@ private:
 	QComboBox *openComboBox;
 	QComboBox *extensionComboBox;
 	QCheckBox *dustCheckBox;
+	QCheckBox *gappedAlignment;
 	QLineEdit *identityLineEdit;
 	QLineEdit *expectedvalueLineEdit;
+	void setDefaults();
 	
 private slots:
 	void okPushed();

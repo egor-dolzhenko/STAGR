@@ -38,6 +38,15 @@ BlastnSettingsDialog::BlastnSettingsDialog(QWidget *parent) //, QString paramete
 	wordsizeComboBox->addItem("7");
 	wordsizeComboBox->addItem("11");
 	wordsizeComboBox->addItem("15");
+	wordsizeComboBox->addItem("16");
+	wordsizeComboBox->addItem("20");
+	wordsizeComboBox->addItem("24");
+	wordsizeComboBox->addItem("28");
+	wordsizeComboBox->addItem("32");
+	wordsizeComboBox->addItem("48");
+	wordsizeComboBox->addItem("64");
+	wordsizeComboBox->addItem("128");
+	wordsizeComboBox->addItem("256");
 	
 	//widgets corresponding to *reward* parameter
 	QLabel *matchscoreLabel = new QLabel("match score: ");
@@ -54,7 +63,7 @@ BlastnSettingsDialog::BlastnSettingsDialog(QWidget *parent) //, QString paramete
 	mismatchscoreComboBox->addItem("-4");
 
 	//checkbox to enable/disable search for gapped alignments
-	QCheckBox *gappedAlignment = new QCheckBox("gapped alignment", this);
+	gappedAlignment = new QCheckBox("gapped alignment", this);
 	
 	//widgets corresponding to *gapopen* and *gapextend* parameters
 	QLabel *openLabel = new QLabel("open: ");
@@ -118,10 +127,8 @@ BlastnSettingsDialog::BlastnSettingsDialog(QWidget *parent) //, QString paramete
 	
 	QHBoxLayout *okCancelLayout = new QHBoxLayout;
 	okButton = new QPushButton("OK");
-	//cancelButton = new QPushButton("Cancel");
 	okCancelLayout->addStretch(1);
 	okCancelLayout->addWidget(okButton);
-	//okCancelLayout->addWidget(cancelButton);
 	
 	mainLayout->addWidget(alignmentGroup, 0, 0, 3, 1);
 	mainLayout->addWidget(filteringGroup, 0, 1);
@@ -132,6 +139,18 @@ BlastnSettingsDialog::BlastnSettingsDialog(QWidget *parent) //, QString paramete
 	connect(okButton, SIGNAL(clicked()), this, SLOT(okPushed()));
 	connect(openComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateExtensionComboBox(int)));
 	connect(matchscoreComboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(updageMismatchComboBox(int)));
+	
+	setDefaults();
+}
+
+void BlastnSettingsDialog::setDefaults()
+{
+	wordsizeComboBox->setCurrentIndex(6);
+	matchscoreComboBox->setCurrentIndex(0);
+	mismatchscoreComboBox->setCurrentIndex(0);
+	openComboBox->setCurrentIndex(1);
+	extensionComboBox->setCurrentIndex(0);
+	gappedAlignment->setChecked(true);
 }
 
 void BlastnSettingsDialog::okPushed()
@@ -144,11 +163,9 @@ void BlastnSettingsDialog::cancelPushed()
 	reject();
 }
 
-
 QStringList BlastnSettingsDialog::blastSettingsPatrameterString(QString queryFilename, QString referenceFilename)
 {
 	QStringList arguments;
-	//arguments = "";
 	if(!dustCheckBox->isChecked()) arguments << "-dust" << "no";
 	arguments << "-query" << queryFilename;
 	arguments << "-subject" << referenceFilename;
@@ -158,10 +175,12 @@ QStringList BlastnSettingsDialog::blastSettingsPatrameterString(QString queryFil
 	arguments << "-penalty" << mismatchscoreComboBox->itemText( mismatchscoreComboBox->currentIndex() );
 	arguments << "-gapopen" << openComboBox->itemText( openComboBox->currentIndex() );
 	arguments << "-gapextend" << extensionComboBox->itemText( extensionComboBox->currentIndex() );
+	if(!gappedAlignment->isChecked()) arguments << "-ungapped";
 	if(identityLineEdit->text() != "") 
 		arguments << "-perc_identity" + identityLineEdit->text();
 	if(expectedvalueLineEdit->text() != "") 
 		arguments << "-evalue" + expectedvalueLineEdit->text();
+	
 	return arguments;
 }
 

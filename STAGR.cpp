@@ -20,13 +20,14 @@
 #include <QFile>
 #include <QTextStream>
 #include "STAGR.h"
-#include "tree.h"
-
 
 //Constructor
 StagrMainWindow::StagrMainWindow(QWidget *parent)
 	   :QMainWindow(parent)
 {
+
+	hsps = NULL;
+	hspsStats = NULL;
 
 	multipleMatchesDialog = NULL;
 
@@ -38,19 +39,19 @@ StagrMainWindow::StagrMainWindow(QWidget *parent)
 	numAlignments = 0;
 	
 	//The default filenames
-	filenameQueryFile = "MIC.fasta";
-	filenameReferenceFile = "MAC.fasta";
+	precursorFilename = "MIC.fasta";
+	productFilename = "MAC.fasta";
 
 	querySequenceInformationLayout = new QHBoxLayout;
 	querySequenceLabel = new QLabel("File with query sequences:");
-	querySequenceFilenameLabel = new QLabel(filenameQueryFile); 
+	querySequenceFilenameLabel = new QLabel(precursorFilename); 
 	querySequenceInformationLayout->addWidget(querySequenceLabel);
 	querySequenceInformationLayout->addWidget(querySequenceFilenameLabel);
 	
 	
 	referenceSequenceInformationLayout = new QHBoxLayout;
 	referenceSequenceLabel = new QLabel("File with reference sequences:");
-	referenceSequenceFilenameLabel = new QLabel(filenameReferenceFile);
+	referenceSequenceFilenameLabel = new QLabel(productFilename);
 	referenceSequenceInformationLayout = new QHBoxLayout;
 	referenceSequenceInformationLayout->addWidget(referenceSequenceLabel);
 	referenceSequenceInformationLayout->addWidget(referenceSequenceFilenameLabel);
@@ -79,8 +80,11 @@ StagrMainWindow::StagrMainWindow(QWidget *parent)
 	connect(settingsAction, SIGNAL(triggered()), this, 
 			SLOT(openSettingsDialog()));
 			
-	connect(loadSequencesAction, SIGNAL(triggered()), this,
-			SLOT(openQueryFileDialog()));
+	//connect( getPrecursorFilenameAction, SIGNAL(triggered()), this,
+	//		SLOT(getPrecursorFilename())); //loadSequencesAction
+
+	//connect( getProductFilenameAction, SIGNAL(triggered()), this,
+	//		SLOT(getProductFilename()));
 	
 	//blastn is the default local alignment algorithm
 	connect(startAction, SIGNAL(triggered()), this,
@@ -98,17 +102,17 @@ void StagrMainWindow::createToolBar()
 {
 	startAction = new QAction("Start", this);
 	settingsAction = new QAction("Blastn settings", this);
-	loadSequencesAction = new QAction("Load sequences", this);
+	//loadSequencesAction = new QAction("Load sequences", this);
 	stagrSettingsAction = new QAction("STAGR settings", this);
 	filteringAction = new QAction("Filtering Script",this);
 	startEditorAction = new QAction("Script Editor", this);
 	startAction->setIcon(QIcon("icons/startIcon.png"));
 	settingsAction->setIcon(QIcon("icons/settingsIcon.png"));
-	loadSequencesAction->setIcon(QIcon("icons/loadSequencesIcon.png"));
+	//loadSequencesAction->setIcon(QIcon("icons/loadSequencesIcon.png"));
 	startEditorAction->setIcon(QIcon("icons/pythonIcon.png"));
 	stagrSettingsAction->setIcon(QIcon("icons/stagrSettingsIcon.png"));
 	toolBar = addToolBar("mainToolBar");
-	toolBar->addAction(loadSequencesAction);
+	//toolBar->addAction(loadSequencesAction);
 	toolBar->addAction(startAction);
 	toolBar->addAction(settingsAction);
 	toolBar->addAction(startEditorAction);
@@ -197,6 +201,17 @@ bool StagrMainWindow::runFilteringAlgorithm(QString input, QString algorithmFile
 	}
 	
 	output = runPythonFunction(QString("script.py"), QString("annotate"), list); // algorithmFilename
+	
+	if( hsps == NULL ) delete hsps;
+	
+	hsps = new HSPs;
+	QString loadStatus = hsps->loadData(output);
+	if( loadStatus != "" )
+	{
+		alert(loadStatus);
+		return false;
+	}
+	
 	if(output == NULL)
 	{
 		alert("Couldn't run the annotation script");
@@ -261,10 +276,10 @@ bool StagrMainWindow::runStagr()
 	switch(currentAligner)
 	{
 		case BLASTN:
-			result = runBlastn(filenameQueryFile, filenameReferenceFile);
+			result = runBlastn(precursorFilename, productFilename);
 			break;
 		case BLAT:
-			result = runBlat(filenameQueryFile, filenameReferenceFile);
+			result = runBlat(precursorFilename, productFilename);
 			break;
 	}
 	
@@ -350,8 +365,8 @@ void StagrMainWindow::openMDialogMultipleMatches()
 		return;
 		
 	unsigned firstRow = list.at(0).row();
-	QString nameQuery = alignmentsSummary[firstRow][qseqid];
-	QString nameReference = alignmentsSummary[firstRow][sseqid];
+	QString nameQuery = hspsStats->at(firstRow)[qseqid];
+	QString nameReference = hspsStats->at(firstRow)[sseqid];
 
 	QSet<QString> nameReferences;
 	unsigned numberOfRelevantAlignments = 0;
@@ -359,23 +374,23 @@ void StagrMainWindow::openMDialogMultipleMatches()
 	{
 		QModelIndex index = list.at(i);
 		unsigned row = index.row();
-		if (nameQuery != alignmentsSummary[row][qseqid])
+		if (nameQuery != hspsStats->at(row)[qseqid])
 		{
 			alert("only one query contig is allowed");
 			return;
 		}
-		numberOfRelevantAlignments = numberOfRelevantAlignments + alignmentsSummary[row][2].toInt();
-		nameReferences.insert(alignmentsSummary[row][sseqid]);
+		numberOfRelevantAlignments = numberOfRelevantAlignments + hspsStats->at(row)[2].toInt();
+		nameReferences.insert(hspsStats->at(row)[sseqid]);
 	}
 	
 	QSetIterator<QString> i(nameReferences);
 	if(multipleMatchesDialog != NULL)
 		delete multipleMatchesDialog;
 	multipleMatchesDialog = new MultipleMatchesDialog(this, nameQuery, nameReferences, 
-													  pullOutFastaSequence(filenameQueryFile, nameQuery), 
-													  pullOutFastaSequence(filenameReferenceFile, nameReference),  
+													  pullOutFastaSequence(precursorFilename, nameQuery), 
+													  pullOutFastaSequence(productFilename, nameReference),  
 													  filteredAlignments, numberOfRelevantAlignments, 
-													  1000, 1000, filenameQueryFile, filenameReferenceFile); //"Query"
+													  1000, 1000, precursorFilename, productFilename); //"Query"
 													  
 	multipleMatchesDialog->show();
 	multipleMatchesDialog->raise();
@@ -399,25 +414,79 @@ void StagrMainWindow::openScriptEditor()
 
 void StagrMainWindow::getAlignmentsSummary()
 {
-	//reorganize
+
+	if( hspsStats != NULL) delete hspsStats;
+	hspsStats = new QVector<QStringList>;
+
+	//hsps->getAverage("MIC1", "MAC1", "length");
+	
+	QString precursorId;
+	QString productId;
+	
+	QSet<QString> *precursorIds = hsps->getAllValues("qseqid");
+	QSet<QString> *productIds = hsps->getAllValues("sseqid");
+	
+	QSetIterator<QString> precursorIdIterator(*precursorIds);
+	
+	while(precursorIdIterator.hasNext())
+	{
+		precursorId = precursorIdIterator.next();
+		
+		QSetIterator<QString> productIdIterator(*productIds);
+		
+		while(productIdIterator.hasNext())
+		{
+			productId = productIdIterator.next();
+			
+			unsigned numHSPs = hsps->numHSPs(precursorId, productId);
+			
+			//qDebug() << precursorId << " " << productId << " " << aveLength;
+			
+			if( numHSPs != 0 )
+			{
+				float aveLength = hsps->getAverage(precursorId, productId, "length");
+				float aveGaps = hsps->getAverage(precursorId, productId, "gapopen");
+				float aveMismatch = hsps->getAverage(precursorId, productId, "mismatch");
+				//int 
+				//float aveGaps = hsps->getAverage(precursorId, productId, "gapopen");
+				
+				QStringList stats; //= new QStringList;
+				stats << precursorId << productId << QString::number(numHSPs) << QString::number(aveLength) 
+					  << QString::number(aveGaps) << QString::number(aveMismatch);
+				hspsStats->append(stats);
+			}
+			
+		}
+		
+	}
+	
+	
 	QMap<QString, unsigned> map;
+	
 	QString name = "";
+	
 	for(unsigned i = 0; i < numAlignments; i++)
 	{
+		//unsafe when id's contain tabs
 		name = filteredAlignments->at(i)["qseqid"] + "\t" + filteredAlignments->at(i)["sseqid"];
 		if (map.contains(name))
 		{
 			map[name] = map[name]++;
-		} else
+		} 
+		else
 		{
 			map[name] = 1;
 		}
 	}
 	
 	numAlignmentsSummary = map.keys().length();
+	
 	alignmentsSummary = new QStringList[numAlignmentsSummary];
+	
 	unsigned j = 0;
+	
 	QMapIterator<QString, unsigned> i(map);
+	
 	while (i.hasNext())
 	{
 		i.next();
@@ -428,6 +497,8 @@ void StagrMainWindow::getAlignmentsSummary()
 		unsigned totalGaps = 0;
 		unsigned mismatches = 0;
 		unsigned numberMatches = 0;
+		unsigned totalLength = 0;
+		
 		for(unsigned id = 0; id < filteredAlignments->size(); ++id)
 		{
 			if( (filteredAlignments->at(id)["qseqid"] == namelist[0]) && (filteredAlignments->at(id)["sseqid"] == namelist[1]) )
@@ -443,28 +514,16 @@ void StagrMainWindow::getAlignmentsSummary()
 	}
 }
 
-void StagrMainWindow::openQueryFileDialog()
+void StagrMainWindow::getPrecursorFilename()
 {
-	filenameQueryFile = QFileDialog::getOpenFileName( 
-        this, 
-        tr("Open file with query contigs"), 
-        QDir::currentPath(), 
-        tr("FASTA files (*.fa *.fasta);;All files (*.*)") );
-    	if( !filenameQueryFile.isNull() )
-    	{
-      		querySequenceFilenameLabel->setText(filenameQueryFile.toAscii());
-    	}
- 
- 	filenameReferenceFile = QFileDialog::getOpenFileName( 
-        this, 
-        tr("Open file with reference contigs"), 
-        QDir::currentPath(), 
-        tr("FASTA files (*.fa *.fasta);;All files (*.*)") );
+	precursorFilename = QFileDialog::getOpenFileName(this, "Specify file with precursor contigs", QDir::currentPath(), "FASTA files (*.fa *.fasta);;All files (*.*)");
+    if( !precursorFilename.isNull() ) querySequenceFilenameLabel->setText(precursorFilename.toAscii()); 
+}
 
-    	if( !filenameReferenceFile.isNull() )
-    	{
-      		referenceSequenceFilenameLabel->setText(filenameReferenceFile.toAscii());
-    	}
+void StagrMainWindow::getProductFilename()
+{
+ 	productFilename = QFileDialog::getOpenFileName(this, "Specify file with product contigs", QDir::currentPath(), "FASTA files (*.fa *.fasta);;All files (*.*)" );
+    if( !productFilename.isNull() ) referenceSequenceFilenameLabel->setText(productFilename.toAscii());
 }
 
 void StagrMainWindow::createTable()
@@ -485,17 +544,16 @@ void StagrMainWindow::createTable()
 		table = NULL;
 	}
 	
-	
-	
 	QStringList header;
-	header << "query" << "subject" << "number of matches" << "ave mismatch" << "ave gap";
-	table = new Table(NULL, header, alignmentsSummary, numAlignmentsSummary);
+	header << "query" << "subject" << "number of HSPs" << "ave length" << "ave mismatch" << "ave gap";
+	table = new Table(NULL, header, hspsStats);
 	
-	//table = new Table(NULL, header, filteredAlignments);
+	
+	//header << "query" << "subject" << "number of matches" << "ave mismatch" << "ave gap";
+	//table = new Table(NULL, header, alignmentsSummary, numAlignmentsSummary);
 	
 	table->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
 	mainLayout->addWidget(table);
-	//mainTabWidget->addTab(table, "Result summary");
 	
 	connect(table, SIGNAL(doubleClicked(QModelIndex)), this, //
 			SLOT(openMDialogMultipleMatches())); //QModelIndex
@@ -507,16 +565,27 @@ void StagrMainWindow::createMenus()
 	fileMenu = menuBar()->addMenu("File");
 	alignmentMenu = menuBar()->addMenu("Alignment");
 	
+	getPrecursorFilenameAction = new QAction("Load Precursor Contigs", this);
+	getProductFilenameAction = new QAction("Load Product Contigs", this);
 	selectBlastnAction = new QAction("Blastn", this);
 	selectBlastnAction->setCheckable(true);
 	selectBlatAction = new QAction("Blat", this);
 	selectBlatAction->setCheckable(true);
+	
+	connect(getPrecursorFilenameAction, SIGNAL(triggered()), this,
+			SLOT(getPrecursorFilename()));
+
+	connect(getProductFilenameAction, SIGNAL(triggered()), this,
+			SLOT(getProductFilename()));
 	
 	connect(selectBlastnAction, SIGNAL(triggered()), this,
 			SLOT(selectBlastn()));
 
 	connect(selectBlatAction, SIGNAL(triggered()), this,
 			SLOT(selectBlat()));
+
+	fileMenu->addAction(getPrecursorFilenameAction);
+	fileMenu->addAction(getProductFilenameAction);	
 	
 	alignmentGroup = new QActionGroup(this);
 	

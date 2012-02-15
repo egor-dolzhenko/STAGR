@@ -33,6 +33,8 @@
 
 #include "scriptEditDialog.h"
 
+#include "hsp.h"
+
 //Location of the header file for including Python interpreter into STAGR
 #include <Python/Python.h>
 
@@ -67,8 +69,11 @@ private slots:
 	//Opens blat settings dialog
 	void openBlatSettingsDialog();
 	
-	//Opens query file dialog
-	void openQueryFileDialog();
+	//get precursor filename from user through a file dialog
+	void getPrecursorFilename();
+	
+	//get product filename from user through a file dialog
+	void getProductFilename();
 	
 	void openScriptEditor();
 		
@@ -142,8 +147,9 @@ private:
 	//Open blastn settings dialog
 	QAction *settingsAction;
 	
-	//Open load sequences dialog
-	QAction *loadSequencesAction;
+	QAction *getPrecursorFilenameAction;
+	
+	QAction *getProductFilenameAction;
 	
 	//Open STAGR settings dialog
 	QAction *stagrSettingsAction;
@@ -186,6 +192,8 @@ private:
 	//Summary about alignments between pairs of contigs
 	QStringList* alignmentsSummary;
 	
+	QVector<QStringList> *hspsStats;
+	
 	//Number of elements in alignmentsSummary array
 	unsigned numAlignmentsSummary;
 	
@@ -196,10 +204,10 @@ private:
 	QMap <QString, unsigned> referenceLengths;
 	
 	//name of the query file
-	QString filenameQueryFile;
+	QString precursorFilename;
 	
 	//name of the reference file
-	QString filenameReferenceFile;
+	QString productFilename;
 	
 	//arguments for blastn local-alignment heuristic
 	QStringList blastnArguments;
@@ -215,5 +223,7 @@ private:
 	QVector< QMap<QString,QString> > *filteredAlignments;
 	
 	QString pullOutFastaSequence(QString filename, QString id);
+	
+	HSPs *hsps;
 };
 #endif //STAGR_H

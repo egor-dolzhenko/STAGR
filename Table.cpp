@@ -61,3 +61,25 @@ Table::Table(QWidget* parent, QStringList header, QVector< QMap<QString, QString
 		}
 	}	
 }
+
+Table::Table(QWidget* parent, QStringList header, QVector<QStringList> *entries)
+{
+	setRowCount(entries->size());
+	setColumnCount(header.size());
+	setAlternatingRowColors(true);
+	setHorizontalHeaderLabels(header);
+	setEditTriggers(QAbstractItemView::NoEditTriggers);
+	setSelectionBehavior(QAbstractItemView::SelectRows);
+	horizontalHeader()->setHighlightSections(false);
+	
+	for(int rowIndex = 0; rowIndex < entries->size(); rowIndex++)
+	{
+		for(int columnIndex = 0; columnIndex < header.size(); columnIndex++)
+		{
+			QTableWidgetItem *item = new QTableWidgetItem;
+			item->setText(entries->at(rowIndex)[columnIndex]);
+			setItem(rowIndex, columnIndex, item);
+		}
+	}	
+
+}

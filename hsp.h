@@ -15,20 +15,31 @@
 //	You should have received a copy of the GNU General Public License
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TABLE_H
-#define TABLE_H
 
-#include <QTableWidget>
+//hsp.h contains the definition of HSP class which is responsible for storing
+//data returned by the filtering algorithm
 
-class Table : public QTableWidget
+#ifndef HSP_H
+#define HSP_H
+
+#include <Python/Python.h>
+#include <QtCore>
+
+class HSPs
 {
-	Q_OBJECT
-	
+
 public:
-	Table(QWidget* parent, QStringList header,
-		  QStringList* entries, int numberOfEntries);
-	Table(QWidget* parent, QStringList header, QVector< QMap<QString, QString> > *entries);
-	Table(QWidget* parent, QStringList header, QVector<QStringList> *entries);
+	//Constructor
+	HSPs();
+	QString loadData(PyObject *output);
+	QVector< QMap<QString,QString> > *matchesToPrecursorId(QString id);
+	float getAverage(QString precursorId, QString productId, QString fieldName);
+	QSet<QString>* getAllValues(QString fieldName);
+	unsigned numHSPs(QString precursorId, QString productId);
+	
+private:
+	QVector< QMap<QString,QString> > hsps;
+
 };
 
-#endif //TABLE_H
+#endif //HSP_H
