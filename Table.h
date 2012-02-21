@@ -19,6 +19,7 @@
 #define TABLE_H
 
 #include <QTableWidget>
+#include "hsp.h"
 
 class Table : public QTableWidget
 {
@@ -29,6 +30,7 @@ public:
 		  QStringList* entries, int numberOfEntries);
 	Table(QWidget* parent, QStringList header, QVector< QMap<QString, QString> > *entries);
 	Table(QWidget* parent, QStringList header, QVector<QStringList> *entries);
+	Table(QWidget* parent, HSPs *hsps);//
 };
 
 #endif //TABLE_H

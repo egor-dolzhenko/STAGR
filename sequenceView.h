@@ -20,13 +20,14 @@
 
 #include <QGraphicsView>
 #include "block.h"
+#include "hsp.h"
 
 class QWidget;
 class QGraphicsScene;
 class QString;
 class QFont;
 
-enum Direction {LEFT, RIGHT};
+
 
 class SequenceView : public QGraphicsView
 {
@@ -34,8 +35,9 @@ class SequenceView : public QGraphicsView
 	
 	
 public:
-	SequenceView(QWidget* parent, QString newSequence, int newSequenceLength, int newnumberAlignments, 
-				 int* newMatchesStart, int* newMatchesEnd, QString *annotation, QVector<Direction> *newAlignmentDirection);
+	SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence, int newSequenceLength//, int newnumberAlignments, 
+				 //int* newMatchesStart, int* newMatchesEnd, QString *annotation, QVector<Direction> *newAlignmentDirection
+				 );
 	
 protected:
 	virtual void resizeEvent(QResizeEvent* event);
@@ -50,10 +52,10 @@ private:
 	void clearScene();
 	int sequenceLength;
 	int numberAlignments;
-	int* matchesStart;
-	int* matchesEnd;
+	//int* matchesStart;
+	//int* matchesEnd;
 	QColor colorForMatchIndex(int index);
-	QString *matchNames;
+	//QString *matchNames;
 	void Annotate(int x, int y, int width, int height, int matchIndex);
 	QFont setFontSize(int pixelsPerNucleotide, int nucleotidesPerRow, QString firstRow, QFont font);
 	QString sequence;
@@ -64,7 +66,8 @@ private:
 	int timerIterations;
 	int nucleotideWidth;
 	bool alwaysShowNucleotides;
-	QVector<Direction> *alignmentsDirection;
+	//QVector<Direction> *alignmentsDirection;
+	HspLoci *hsps;
 };
 
 #endif //of SEQUENCEVIEW_H

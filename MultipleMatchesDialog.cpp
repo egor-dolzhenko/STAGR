@@ -16,7 +16,10 @@
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include "MultipleMatchesDialog.h"
+#include "plotLayer.h"
 
 
 MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QString queryName, QSet<QString> subjectNames,
@@ -30,9 +33,15 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 	QSet<QString> precursorNames;
 	precursorNames.insert(queryName);
 	//QStringList productNames;
-	
-	HSPs newHsps(hsps, precursorNames, subjectNames);
 
+	//qDebug() << "creating hsps";	
+	newHsps = new HSPs(hsps, precursorNames, subjectNames);
+	precursorLoci = new HspLoci(newHsps, "qstart", "qend", "qseqid");
+	productLoci = new HspLoci(newHsps, "sstart", "send", "sseqid");
+	
+	//qDebug() << "printing table";
+	//newHsps->printTable();
+	//qDebug() << "done";
 	alignmentsPairContigs = new QVector< QMap<QString,QString> >(0);
 	alignmentsDirection = new QVector<Direction>(0);
 	
@@ -72,17 +81,23 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 		}
 	}	
 	
-	QStringList header;
-	header = filteredAlignments->at(0).keys();
+	//QStringList *header;
+	//header = filteredAlignments->at(0).keys();
+	
+	//header = newHsps.getKeys();
+	
 	//header << "qseqid" << "sseqid" << "pident" << "length" << "mismatch" << "gapopen" 
 	//	   << "qstart" << "qend"   << "sstart" << "send"   << "evalue"   << "bitscore";
 	
-	tableWithRelevantMatches = new Table(NULL, header, alignmentsPairContigs);
-	
+	//tableWithRelevantMatches = new Table(NULL, header, alignmentsPairContigs);
+	newHsps->printTable();
+	tableWithRelevantMatches = new Table(NULL, newHsps);
+	newHsps->printTable();
 	mainTab = new QTabWidget(this);
 	
 	mainTab->addTab(tableWithRelevantMatches, "Summary");
 	
+	//====================================================
 	unsigned numAlignments = alignmentsPairContigs->size();
 	matchesStart = new int[numAlignments];
 	matchesEnd = new int[numAlignments];
@@ -92,6 +107,14 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 	
 	unsigned newStart = smallestValue("qstart") - 1; //
 	unsigned newStartReference = smallestValue("sstart") - 1;
+	
+	//qDebug() << newStart << largestValue("qend"); 
+	//qDebug() << newHsps->minUpstreamPrecursor << newHsps->maxDownstreamPrecursor;
+	
+	//qDebug() << newStartReference << largestValue("send"); 
+	//qDebug() << newHsps->minUpstreamProduct << newHsps->maxDownstreamProduct;
+	
+	
 	for(unsigned i = 0; i < alignmentsPairContigs->size(); ++i)
 	{
 		matchesStart[i] = alignmentsPairContigs->at(i)["qstart"].toInt() - newStart;
@@ -101,10 +124,13 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 		matchesSubjectNames[i] = alignmentsPairContigs->at(i)["sseqid"];
 	}
 	
+	//==================================================
+	
 	bubbleSortArraysByQuery();
 	
-	sequenceView = new SequenceView(NULL, querySequence, largestValue("qend") - newStart, numAlignments, //queryLength
-									matchesStart, matchesEnd, matchesSubjectNames, alignmentsDirection);
+	sequenceView = new SequenceView(NULL, precursorLoci, querySequence, largestValue("qend") - newStart//, numAlignments, //queryLength
+									//matchesStart, matchesEnd, matchesSubjectNames, alignmentsDirection
+									);
 	mainTab->addTab(sequenceView, "Query");
 
 	bool moreThanOne = false;
@@ -120,19 +146,85 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 	if(!moreThanOne)
 	{
 		bubbleSortArraysByReference();
-		subjectView = new SequenceView(NULL, subjectSequence, largestValue("send") - newStartReference, numAlignments, //subjectLength
-								   		matchesSubjectStart, matchesSubjectEnd, matchesSubjectNames, alignmentsDirection);
+		subjectView = new SequenceView(NULL, productLoci, subjectSequence, largestValue("send") - newStartReference//, numAlignments, //subjectLength
+								   		//matchesSubjectStart, matchesSubjectEnd, matchesSubjectNames, alignmentsDirection
+								   		);
 		mainTab->addTab(subjectView, "Subject");
 
 	}
-
-
 	
-	multipleMatchesView = new MultipleMatchesView(NULL, matchesStart, matchesEnd, matchesSubjectStart,
-							 matchesSubjectEnd, //queryLength, subjectLength, 
-							 numAlignments, matchesSubjectNames); 
+	//circular layout
 	
-	mainTab->addTab(multipleMatchesView, "Match map");
+	QVector<QString> contigNames;
+	QVector<unsigned> contigSizes;
+	
+	for(unsigned i = 0; i < precursorLoci->getSize(); i++)
+	{
+		unsigned precIndex = precursorLoci->pos(i);
+		QString contigName = precursorLoci->id(precIndex);
+		
+		if(!contigNames.contains(contigName))
+		{
+			contigNames << contigName;
+			contigSizes << precursorLoci->contigSize(contigName);
+		}
+		
+	}
+
+	for(unsigned i = 0; i < productLoci->getSize(); i++)
+	{
+		unsigned prodIndex = productLoci->pos(i);
+		QString contigName = productLoci->id(prodIndex);
+		if(!contigNames.contains(contigName))
+		{
+			contigNames << contigName;
+			contigSizes << productLoci->contigSize(contigName);
+		}
+	}
+
+	Layer layer(contigSizes, contigNames);
+	
+	for(unsigned i = 0; i < precursorLoci->getSize(); i++)
+	{
+		unsigned precIndex = precursorLoci->pos(i);
+		QString precName = precursorLoci->id(precIndex);
+		unsigned precU = precursorLoci->uCoord(precIndex);
+		unsigned precD = precursorLoci->dCoord(precIndex);
+
+		unsigned prodIndex = productLoci->pos(i);
+		QString prodName = productLoci->id(prodIndex);
+		unsigned prodU = productLoci->uCoord(prodIndex);
+		unsigned prodD = productLoci->dCoord(prodIndex);
+
+		layer.addMatch(precName, prodName, precU, precD, prodU, prodD);
+	}
+	
+	qDebug() << "precursor loci:";
+	precursorLoci->print();
+	
+	qDebug() << "product loci:";
+	productLoci->print();
+	
+	layer.print();
+	
+	
+	scene = new QGraphicsScene( -200, -200, 400, 400);
+	view = new QGraphicsView();
+	view->setRenderHints(QPainter::Antialiasing|
+				   QPainter::TextAntialiasing);
+	view->setScene( scene );
+	
+	PlotLayer pl(layer, *scene);
+	
+	view->show();
+	
+	//multipleMatchesView = new MultipleMatchesView(NULL, precursorLoci, productLoci, matchesStart, matchesEnd, matchesSubjectStart,
+	//						 matchesSubjectEnd, //queryLength, subjectLength, 
+	//						 numAlignments, matchesSubjectNames); 
+	//
+	//mainTab->addTab(multipleMatchesView, "Match map");
+	
+	mainTab->addTab(view, "circular layout");
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(mainTab);
 	setLayout(mainLayout);
@@ -144,13 +236,13 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 MultipleMatchesDialog::~MultipleMatchesDialog()
 {
 	//delete tableWithRelevantMatches;
-	delete[] matchesStart;
-	delete[] matchesEnd;
-	delete[] matchesSubjectStart;
-	delete[] matchesSubjectEnd;
-	delete sequenceView;
-	delete multipleMatchesView;
-	delete alignmentsPairContigs;
+	//delete[] matchesStart;
+	//delete[] matchesEnd;
+	//delete[] matchesSubjectStart;
+	//delete[] matchesSubjectEnd;
+	//delete sequenceView;
+	//delete multipleMatchesView;
+	//delete alignmentsPairContigs;
 }
 
 // void MultipleMatchesDialog::bubbleSortQuerySubjectRecordsByQuery()

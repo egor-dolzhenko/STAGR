@@ -83,3 +83,28 @@ Table::Table(QWidget* parent, QStringList header, QVector<QStringList> *entries)
 	}	
 
 }
+
+Table::Table(QWidget* parent, HSPs *hsps) //
+{
+	QStringList *header = hsps->getKeys();
+	qDebug() << "header = ";
+	qDebug() << *header;
+	setRowCount(hsps->numHSPs());
+	setColumnCount(header->size());
+	setAlternatingRowColors(true);
+	setHorizontalHeaderLabels(*header);
+	setEditTriggers(QAbstractItemView::NoEditTriggers);
+	setSelectionBehavior(QAbstractItemView::SelectRows);
+	horizontalHeader()->setHighlightSections(false);
+
+	for(int rowIndex = 0; rowIndex < hsps->numHSPs(); rowIndex++)
+	{
+		for(int columnIndex = 0; columnIndex < header->size(); columnIndex++)
+		{
+			QTableWidgetItem *item = new QTableWidgetItem;
+			item->setText(hsps->getElement(rowIndex, (*header)[columnIndex]));
+			setItem(rowIndex, columnIndex, item);
+		}
+	}
+
+}

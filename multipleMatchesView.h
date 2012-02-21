@@ -20,6 +20,7 @@
 
 #include <QGraphicsView>
 #include <vector>
+#include "hsp.h"
 
 using namespace std;
 
@@ -30,7 +31,7 @@ class MultipleMatchesView : public QGraphicsView
 	Q_OBJECT
 	
 public: 
-	MultipleMatchesView(QWidget* parent, int *matchesStart, int *matchesEnd, 
+	MultipleMatchesView(QWidget* parent, HspLoci* precursorLoci, HspLoci* productLoci, int *matchesStart, int *matchesEnd, 
 				int *matchesSubjectStart, int *matchesSubjectEnd, 
 				int queryLength, //int subjectLength, int numberOfRelevantRecords, 
 				QString *matchesSubjectNames);

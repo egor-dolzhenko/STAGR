@@ -24,7 +24,7 @@
 
 using namespace std;
 
-MultipleMatchesView::MultipleMatchesView(QWidget* parent, int *array1, int *array2, 
+MultipleMatchesView::MultipleMatchesView(QWidget* parent, HspLoci* precursorLoci, HspLoci* productLoci, int *array1, int *array2, 
 				int *primaryArray, int *matchesSubjectEnd, //int queryLength, int subjectLength, 
 				int numberOfRelevantRecords, QString *matchesSubjectNames)
 	:QGraphicsView(parent)

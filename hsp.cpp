@@ -20,7 +20,7 @@
 
 HSPs::HSPs()
 {
-	//hsps = QVector< QMap<QString,QString> >(0);
+
 }
 
 HSPs::HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds)
@@ -47,11 +47,14 @@ HSPs::HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds)
  			hsps.append(hspCopy);
 		}
 		
+		
 		//for(unsigned j = 0; j < hObj->hsps.at(i).size(); ++j)
 		//{
 		//	qDebug() << hObj->hsps.at(i)["qseqid"];
 		//}
 	}
+	
+	//calculateCoordinates();
 
 // 	alignmentsPairContigs = new QVector< QMap<QString,QString> >(0);
 // 	alignmentsDirection = new QVector<Direction>(0);
@@ -137,6 +140,8 @@ QString HSPs::loadData(PyObject *output)
 		hsps.append(hsp);
 	}
 	
+	//calculateCoordinates();
+	
 	return "";
 }
 
@@ -192,3 +197,208 @@ unsigned HSPs::numHSPs(QString precursorId, QString productId)
 	return numHspsFound;
 }
 
+QStringList* HSPs::getKeys()
+{
+	QStringList *keys = new QStringList(hsps.at(0).keys());
+	return keys;
+}
+
+unsigned HSPs::numHSPs()
+{
+	return hsps.size();
+}
+
+QString HSPs::getElement(unsigned numHsp, QString id)
+{
+	return hsps.at(numHsp)[id];
+}
+
+void HSPs::printTable()
+{
+
+	QStringList header = hsps.at(0).keys();
+	for(unsigned i = 0; i < hsps.size(); i++)
+	{
+		QStringList row;
+		for(unsigned j = 0; j < header.size(); j++)
+		{
+			row << hsps.at(i)[header[j]];
+		}
+		qDebug() << row;
+	}
+
+}
+
+HspLoci::HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString idId)
+{
+	minUpstream = smallestValue(hsps, upstreamId) - 1; //"qstart"
+	maxDownstream = largestValue(hsps, downstreamId); //"qend"
+	//minUpstreamProduct = smallestValue(hsps, "sstart") - 1;
+	//maxDownstreamProduct = largestValue(hsps, "send");
+	
+	for(unsigned i = 0; i < hsps->numHSPs(); ++i)
+	{
+	
+		unsigned beginCoord = hsps->getElement(i,upstreamId).toInt() - minUpstream;
+		unsigned endCoord = hsps->getElement(i,downstreamId).toInt() - minUpstream;
+		
+			//const QString qstartValueString(qstartValue);
+			
+		if(beginCoord > endCoord)
+		{
+			upstreamCoord.append(endCoord);
+			downstreamCoord.append(beginCoord);
+			dirs.append(LEFT);	
+		}
+		else
+		{
+			upstreamCoord.append(beginCoord);
+			downstreamCoord.append(endCoord);
+			dirs.append(RIGHT);
+		}
+			
+		ids.append(hsps->getElement(i, idId));
+		
+		position.append(i);
+		
+		//upstreamCoord.append(hsps->getElement(i,upstreamId).toInt() - minUpstream);
+		//downstreamCoord.append(hsps->getElement(i,downstreamId).toInt() - minUpstream);
+		
+		//prodUpstreamCoord.append(hsps->getElement(i,"sstart").toInt() - minUpstreamProduct);
+		//prodDownstreamCoord.append(hsps->getElement(i,"send").toInt() - minUpstreamProduct);
+	}
+
+	size = hsps->numHSPs();
+	
+	sort();
+	
+	//invert position
+	unsigned tempPosition[size];
+	
+	for(unsigned i = 0; i < size; i++)
+	{
+		tempPosition[position[i]] = i;
+	}
+	
+	for(unsigned i = 0; i < size; i++)
+	{
+		position[i] = tempPosition[i];
+	}
+	
+}
+
+unsigned HspLoci::smallestValue(HSPs *hsps, QString id)
+{
+	unsigned minValue = hsps->getElement(0, id).toInt();
+	
+	for(unsigned i = 0; i < hsps->numHSPs(); ++i)
+	{
+		unsigned currentValue = hsps->getElement(i,id).toInt();
+		if(currentValue < minValue)
+		{
+			minValue = currentValue;
+		}
+	}
+	
+	return minValue;
+}
+
+unsigned HspLoci::largestValue(HSPs *hsps, QString id)
+{
+	unsigned maxValue = hsps->getElement(0, id).toInt();
+	for(unsigned i = 0; i < hsps->numHSPs(); ++i)
+	{
+		unsigned currentValue = hsps->getElement(i,id).toInt();
+		if(currentValue > maxValue)
+		{
+			maxValue = currentValue;
+		}
+	}
+	
+	return maxValue;
+
+}
+
+unsigned HspLoci::uCoord(unsigned index)
+{
+	return upstreamCoord[index];
+}
+
+unsigned HspLoci::dCoord(unsigned index)
+{
+	return downstreamCoord[index];
+}
+
+QString HspLoci::id(unsigned index)
+{
+	return ids[index];
+}
+
+void HspLoci::sort()
+{
+	bool change = true;
+	unsigned numberSwap;
+	QString stringSwap;
+	while(change == true)
+	{
+		change = false;
+		for(int i = 0; i < ids.size() - 1; ++i)
+		{
+			if(upstreamCoord[i] > upstreamCoord[i + 1])
+			{
+				numberSwap = upstreamCoord[i];
+				upstreamCoord[i] = upstreamCoord[i + 1];
+				upstreamCoord[i + 1] = numberSwap;
+				
+				numberSwap = downstreamCoord[i];
+				downstreamCoord[i] = downstreamCoord[i + 1];
+				downstreamCoord[i + 1] = numberSwap;
+				
+				stringSwap = ids[i];
+				ids[i] = ids[i+1];
+				ids[i + 1] = stringSwap;
+				
+				numberSwap = position[i];
+				position[i] = position[i + 1];
+				position[i + 1] = numberSwap;
+				
+				change = true;
+			}
+		}
+	}
+}
+
+unsigned HspLoci::getSize()
+{
+	return size;
+}
+
+Direction HspLoci::dir(unsigned index)
+{
+	return dirs[index];
+}
+
+unsigned HspLoci::pos(unsigned index)
+{
+	return position[index];
+}
+
+unsigned HspLoci::contigSize(QString contigName)
+{
+	unsigned maxValue = dCoord(0);
+	
+	for(unsigned i = 0; i < size; ++i)
+	{
+		if( (contigName == id(i))&&(dCoord(i) > maxValue) ) maxValue = dCoord(i);
+	}
+	
+	return maxValue;
+}
+
+void HspLoci::print()
+{
+	for(unsigned i = 0; i < size; ++i)
+	{
+		qDebug() << "contig name = " << id(i) << " U = " << uCoord(i) << " D = " << dCoord(i);
+	}
+}

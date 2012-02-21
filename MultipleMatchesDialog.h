@@ -22,6 +22,7 @@
 #include "sequenceView.h"
 #include "multipleMatchesView.h"
 #include "hsp.h"
+#include "layer.h"
 
 enum recordType {qseqid, sseqid, pident, length, MISMATCH, gapopen, 
 				 qstart, qend, sstart, send, evalue, bitscore};
@@ -71,6 +72,11 @@ private:
 	QAction *zoomInAction;
 	QAction *zoomOutAction;
 	QVector<Direction> *alignmentsDirection;
+	HSPs *newHsps;
+	HspLoci *precursorLoci;
+	HspLoci *productLoci;
+	QGraphicsScene *scene;
+	QGraphicsView *view;
 };
 
 #endif //MULTIPLEMATCHESDIALOG_H

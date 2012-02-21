@@ -25,6 +25,9 @@
 #include <Python/Python.h>
 #include <QtCore>
 
+enum Direction {LEFT, RIGHT};
+//RIGHT = FORWARD
+//LEFT = REVERSE
 class HSPs
 {
 
@@ -37,12 +40,45 @@ public:
 	float getAverage(QString precursorId, QString productId, QString fieldName);
 	QSet<QString>* getAllValues(QString fieldName);
 	unsigned numHSPs(QString precursorId, QString productId);
-	
+	QStringList *getKeys();
+	unsigned numHSPs();
+	QString getElement(unsigned numHsp, QString id);
+	void printTable();
+
+
 private:
 	QVector< QMap<QString,QString> > hsps;
 
+
 };
 
+class HspLoci
+{
+	public:
+		HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString idId);
+		unsigned uCoord(unsigned index);
+		unsigned dCoord(unsigned index);
+		QString id(unsigned index);
+		unsigned getSize();
+		Direction dir(unsigned index);
+		unsigned pos(unsigned index);
+		unsigned contigSize(QString contigName);
+		void print();
 
+	private:
+		QVector<unsigned> upstreamCoord;
+		QVector<unsigned> downstreamCoord;
+		QVector<unsigned> position;
+		QVector<Direction> dirs;
+		QStringList ids;
+		unsigned minUpstream;
+		unsigned maxDownstream;
+		unsigned smallestValue(HSPs *hsps, QString id);
+		unsigned largestValue(HSPs *hsps, QString id);
+		void sort();
+		unsigned size;
+
+
+};
 
 #endif //HSP_H

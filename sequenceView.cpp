@@ -18,29 +18,33 @@
 #include <QtGui>
 #include "sequenceView.h"
 
-SequenceView::SequenceView(QWidget* parent, QString newSequence, int newSequenceLength, int newnumberAlignments, 
-						   int* newMatchesStart, int* newMatchesEnd, QString *annotation, QVector<Direction> *newAlignmentsDirection)
+SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence, int newSequenceLength//, int newnumberAlignments, 
+						   //int* newMatchesStart, int* newMatchesEnd, QString *annotation, QVector<Direction> *newAlignmentsDirection
+						   )
 	:QGraphicsView(parent)
 {
 	
+	hsps = hspLoci;
+	
 	//references to arrays containing alignment coordinates
 	sequenceLength = newSequenceLength; //don't need to copy
-	numberAlignments = newnumberAlignments; //don't need to copy
+	numberAlignments = hspLoci->getSize();//newnumberAlignments; // //newnumberAlignments don't need to copy
+	//qDebug() << "numberAlignments = " << numberAlignments;
 	
-	matchesStart = new int[numberAlignments];
-	matchesEnd = new int[numberAlignments];
-	matchNames = new QString[numberAlignments];
+	//matchesStart = new int[numberAlignments];
+	//matchesEnd = new int[numberAlignments];
+	//matchNames = new QString[numberAlignments];
 	
-	for(unsigned i = 0; i < numberAlignments; ++i)
-	{
-		matchNames[i] = annotation[i];
-		matchesStart[i] = newMatchesStart[i]; //need to copy
-		matchesEnd[i] = newMatchesEnd[i]; //need to copy
-	}	
+	//for(unsigned i = 0; i < numberAlignments; ++i)
+	//{
+	//	matchNames[i] = annotation[i];
+	//	matchesStart[i] = newMatchesStart[i]; //need to copy
+	//	matchesEnd[i] = newMatchesEnd[i]; //need to copy
+	//}	
 
 	
 	sequence = newSequence; //don't need to copy
-	alignmentsDirection = newAlignmentsDirection; //need to copy
+	//alignmentsDirection = newAlignmentsDirection; //need to copy
 
 	//width of each nucleotide
 	nucleotideWidth = 7;
@@ -97,12 +101,12 @@ void SequenceView::createScene(int width, int height)
 		for(int trackIndex = 0; trackIndex < numberAlignments; trackIndex++)
 		{
 			//until find track that ends before this match starts
-			if(tracksEnd[trackIndex] <= matchesStart[matchIndex])
+			if(tracksEnd[trackIndex] <= hsps->uCoord(matchIndex)) //matchesStart[matchIndex]
 			{
 				//in this case assign the track to the current match
 				alignmentTracks[matchIndex] = trackIndex;
 				//and update the end of the track to be same as end of the match
-				tracksEnd[trackIndex] = matchesEnd[matchIndex];
+				tracksEnd[trackIndex] = hsps->dCoord(matchIndex); //matchesEnd[matchIndex]
 				//further, if track index is the highest seen so far, update
 				//maxTrackIndex with it
 				if(trackIndex > maxTrackIndex) maxTrackIndex = trackIndex;
@@ -175,10 +179,10 @@ void SequenceView::createScene(int width, int height)
 			int rowEnd = (rowIndex + 1)*nucleotidesPerRow;
 			
 			//index of the first nucleotide in the match
-			int matchStart = matchesStart[matchIndex];
+			int matchStart = hsps->uCoord(matchIndex); //matchesStart[matchIndex]
 			
 			//index of the last nucleotide in the match
-			int matchEnd = matchesEnd[matchIndex];
+			int matchEnd = hsps->dCoord(matchIndex); //matchesEnd[matchIndex]
 			
 			//change index to make sure track with smaller index is closer to the
 			//sequence (change later)
@@ -192,7 +196,7 @@ void SequenceView::createScene(int width, int height)
 			if( (matchStart < rowBegin) && 
 				(rowBegin <= matchEnd ) && (matchEnd <= rowEnd)  )
 			{
-				if((*alignmentsDirection)[matchIndex] == LEFT) blockType = BLOCK_INCOMPLETE_LEFT;
+				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_INCOMPLETE_LEFT; //(*alignmentsDirection)[matchIndex]
 				else blockType = BLOCK_POINT_RIGHT_INCOMPLETE;
 				
 				block = new Block((matchEnd - rowBegin + 1)*nucleotideWidth,
@@ -204,7 +208,7 @@ void SequenceView::createScene(int width, int height)
 			//begins and ends in this row
 			else if ( (rowBegin <= matchStart) && ( matchEnd <= rowEnd ) )
 			{
-				if((*alignmentsDirection)[matchIndex] == LEFT) blockType = BLOCK_POINT_LEFT;
+				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_POINT_LEFT; //(*alignmentsDirection)[matchIndex]
 				else blockType = BLOCK_POINT_RIGHT;
 
 				block = new Block((matchEnd - matchStart + 1)*nucleotideWidth,
@@ -217,7 +221,7 @@ void SequenceView::createScene(int width, int height)
 			else if ( (rowBegin <= matchStart) && ( matchStart <= rowEnd )
 					  && (rowEnd < matchEnd) )
 			{
-				if((*alignmentsDirection)[matchIndex] == LEFT) blockType = BLOCK_POINT_LEFT_INCOMPLETE;
+				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_POINT_LEFT_INCOMPLETE; //(*alignmentsDirection)[matchIndex]
 				else blockType = BLOCK_INCOMPLETE_RIGHT;
 
 				block = new Block((rowEnd - matchStart  + 1)*nucleotideWidth, trackHeight, blockType, color );
@@ -316,7 +320,7 @@ QColor SequenceView::colorForMatchIndex(int index)
 void SequenceView::Annotate(int x, int y, int width, int height, int matchIndex)
 {
 	
-	QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(matchNames[matchIndex]);
+	QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(hsps->id(matchIndex)); //matchNames[matchIndex]
 	text->setPos(x + 3, y + (height - text->boundingRect().height())/2);
 	if((x + 3 + text->boundingRect().width()) <= x + width) scene->addItem(text);
 }
