@@ -182,39 +182,73 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 		}
 	}
 
-	Layer layer(contigSizes, contigNames);
+	QVector<bool> layeredLoci;
+	for(unsigned i = 0; i < precursorLoci->getSize(); i++) layeredLoci.append(false);
+
 	
-	for(unsigned i = 0; i < precursorLoci->getSize(); i++)
+	unsigned numAdded = 0;
+	scene = new QGraphicsScene( -200, -200, 400, 400);
+	unsigned radius = 100;
+	
+	
+	QVector<Layer> layers;
+
+	
+	while( numAdded != precursorLoci->getSize() )
 	{
-		unsigned precIndex = precursorLoci->pos(i);
-		QString precName = precursorLoci->id(precIndex);
-		unsigned precU = precursorLoci->uCoord(precIndex);
-		unsigned precD = precursorLoci->dCoord(precIndex);
+		layers.append(Layer(contigSizes, contigNames));
+		Layer *layer;
+		layer = &layers.last();
 
-		unsigned prodIndex = productLoci->pos(i);
-		QString prodName = productLoci->id(prodIndex);
-		unsigned prodU = productLoci->uCoord(prodIndex);
-		unsigned prodD = productLoci->dCoord(prodIndex);
+		for(unsigned i = 0; i < precursorLoci->getSize(); i++)
+		{
+			unsigned precIndex = precursorLoci->pos(i);
+		
+			if(!layeredLoci[precIndex])
+			{
+				QString precName = precursorLoci->id(precIndex);
+				unsigned precU = precursorLoci->uCoord(precIndex);
+				unsigned precD = precursorLoci->dCoord(precIndex);
 
-		layer.addMatch(precName, prodName, precU, precD, prodU, prodD);
+				unsigned prodIndex = productLoci->pos(i);
+				QString prodName = productLoci->id(prodIndex);
+				unsigned prodU = productLoci->uCoord(prodIndex);
+				unsigned prodD = productLoci->dCoord(prodIndex);
+
+				if(layer->addMatch(precName, prodName, precU, precD, prodU, prodD))
+				{
+					layeredLoci[precIndex] = true;
+					numAdded++;
+				}
+			}
+		}
+		
+		layer->plotLayer(*scene, radius);
+		//PlotLayer pl(layer, *scene, radius);
+		radius += 50;
 	}
 	
-	qDebug() << "precursor loci:";
-	precursorLoci->print();
+	//qDebug() << layeredLoci;
 	
-	qDebug() << "product loci:";
-	productLoci->print();
+	//qDebug() << "precursor loci:";
+	//precursorLoci->print();
 	
-	layer.print();
+	//qDebug() << "product loci:";
+	//productLoci->print();
+	
+	//layer.print();
 	
 	
-	scene = new QGraphicsScene( -200, -200, 400, 400);
+
+	
+	
+	
 	view = new QGraphicsView();
 	view->setRenderHints(QPainter::Antialiasing|
 				   QPainter::TextAntialiasing);
 	view->setScene( scene );
 	
-	PlotLayer pl(layer, *scene);
+	
 	
 	view->show();
 	

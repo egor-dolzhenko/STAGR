@@ -97,18 +97,18 @@ Contig::Contig(qreal newStart, qreal newEnd, QVector<qreal> newInitialAngles, QV
 	colors = newColors;
 }
 
-void Contig::plotRegions(QGraphicsScene &scene)
+void Contig::plotRegions(QGraphicsScene &scene, unsigned radius)
 {
 	Region *region;
 	unsigned size = initialAngles.size();
 	if( size == 1 )
 	{
-		region = new Region(150, 40, initialAngles[0], terminalAngles[0], initialAngles[0], terminalAngles[0], colors[0]);
+		region = new Region(radius, 40, initialAngles[0], terminalAngles[0], initialAngles[0], terminalAngles[0], colors[0]);
 		scene.addItem(region);
 		return;
 	} else
 	{
-		region = new Region(150, 40, initialAngles[0], terminalAngles[0], initialAngles[0], initialAngles[1], colors[0]);
+		region = new Region(radius, 40, initialAngles[0], terminalAngles[0], initialAngles[0], initialAngles[1], colors[0]);
 		scene.addItem(region);
 	}
 	
@@ -118,53 +118,54 @@ void Contig::plotRegions(QGraphicsScene &scene)
 		qreal term = terminalAngles[i];
 		QColor color = colors[i];
 		
-		region = new Region(150, 40, initialAngles[i], terminalAngles[i], terminalAngles[i - 1], initialAngles[i + 1], colors[i]);
+		region = new Region(radius, 40, initialAngles[i], terminalAngles[i], terminalAngles[i - 1], initialAngles[i + 1], colors[i]);
 		scene.addItem(region);
 	}
 	
-	region = new Region(150, 40, initialAngles[size - 1], terminalAngles[size - 1], terminalAngles[size - 2], terminalAngles[size - 1], colors[size - 1]);
+	region = new Region(radius, 40, initialAngles[size - 1], terminalAngles[size - 1], terminalAngles[size - 2], terminalAngles[size - 1], colors[size - 1]);
 	scene.addItem(region);
 	
 }
 
-void Contig::plotContigOutline(QGraphicsScene &scene)
+void Contig::plotContigOutline(QGraphicsScene &scene, unsigned radius)
 {
-	ContigOutline *outline = new ContigOutline(150, 40, start, end, QColor(10,10,10,10));
+	ContigOutline *outline = new ContigOutline(radius, 40, start, end, QColor(10,10,10,10));
 	scene.addItem(outline);
 }
 
-void Contig::plotContig(QGraphicsScene &scene)
+void Contig::plotContig(QGraphicsScene &scene, unsigned radius)
 {
-	plotRegions(scene);
-	plotContigOutline(scene);
+	if(initialAngles.size() != 0)
+		plotRegions(scene, radius);
+	
+	plotContigOutline(scene, radius);
 }
 
-PlotLayer::PlotLayer(Layer &layer, QGraphicsScene &scene)
+void Layer::plotLayer(QGraphicsScene &scene, unsigned radius)
 {
-	QMap<QString, ContigData> *contigs = &layer.contigs;
+	//QMap<QString, ContigData> *contigs = &layer->contigs;
 	
 	QMap<QString, ContigData>::iterator i;
 	
 	//L is the size of the entire sequence (including gaps) to be displayed
 	qreal L = 0;
-	i = contigs->begin();
+	i = contigs.begin();
 	
 	qreal gap = 50;
 	
-	while (i != contigs->end())
+	while (i != contigs.end())
 	{
-		//qDebug() << "contig: " << i.key();
-		L = L + layer.size[i.key()] + gap;
+		L = L + size[i.key()] + gap;
 		++i;
 	}
 	
 	gap = gap*360/L; //from nt to deg
 	
-	i = contigs->begin();
+	i = contigs.begin();
 	qreal contigStartAngle = 0;
 	qreal contigEndAngle = 0;
 	
-	while (i != contigs->end())
+	while (i != contigs.end())
 	{
     	ContigData *contig = &i.value();
     	QString contigName = i.key();
@@ -173,7 +174,7 @@ PlotLayer::PlotLayer(Layer &layer, QGraphicsScene &scene)
     	QVector<qreal> newTerminalAngles;
     	QVector<QColor> newColors;
     	
-    	contigEndAngle = contigStartAngle + layer.size[contigName]*360/L;
+    	contigEndAngle = contigStartAngle + layer->size[contigName]*360/L;
     	
     	qreal segmentStartAngle = contigStartAngle;
     	qreal segmentEndAngle = 0;
@@ -194,11 +195,57 @@ PlotLayer::PlotLayer(Layer &layer, QGraphicsScene &scene)
     	
     	Contig ctg(contigStartAngle, contigEndAngle, newInitialAngles, newTerminalAngles, newColors);
     	ctg.print();
-		ctg.plotContig(scene);
+		ctg.plotContig(scene, radius);
 		
 		contigStartAngle = contigEndAngle + gap;
 		
      ++i;
+ 	}
+}
+
+Layer::Layer(QVector<unsigned> contigSizes, QVector<QString> contigNames)
+{
+	qDebug() << "layer created";
+	for(unsigned i = 0; i < contigNames.size(); ++i)
+	{
+		QString name = contigNames[i];
+		contigs[name] = ContigData();
+		size[name] = contigSizes[i];
+	}
+}
+
+Layer::Layer()
+{
+	qDebug() << "layer default constructor is called";
+}
+
+bool Layer::addMatch(QString precName, QString prodName, unsigned precU, 
+			  unsigned precD, unsigned prodU, unsigned prodD)
+{
+
+	ContigData *precContig = &contigs[precName];
+	int precPos = precContig->checkPosition(precU, precD);
+	
+	ContigData *prodContig = &contigs[prodName];
+	int prodPos = prodContig->checkPosition(prodU, prodD);
+	
+	if( (precPos == -1) || (prodPos == -1) ) return false;
+	
+	precContig->include(precU, precD, precPos);
+	prodContig->include(prodU, prodD, prodPos);
+	
+	return true;
+
+}
+
+void Layer::print()
+{
+ 	QMap<QString, ContigData>::iterator i = contigs.begin();
+	
+	while (i != contigs.end()) {
+    	qDebug() << i.key() << ": "; 
+    	(i.value()).print();
+    	++i;
  	}
 }
 

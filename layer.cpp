@@ -11,6 +11,11 @@ Layer::Layer(QVector<unsigned> contigSizes, QVector<QString> contigNames)
 	}
 }
 
+Layer::Layer()
+{
+	qDebug() << "layer default constructor is called";
+}
+
 bool Layer::addMatch(QString precName, QString prodName, unsigned precU, 
 			  unsigned precD, unsigned prodU, unsigned prodD)
 {
