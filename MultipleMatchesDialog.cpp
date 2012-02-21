@@ -20,6 +20,7 @@
 #include <QGraphicsView>
 #include "MultipleMatchesDialog.h"
 #include "plotLayer.h"
+#include "chordDiagram.h"
 
 
 MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QString queryName, QSet<QString> subjectNames,
@@ -150,107 +151,11 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 								   		//matchesSubjectStart, matchesSubjectEnd, matchesSubjectNames, alignmentsDirection
 								   		);
 		mainTab->addTab(subjectView, "Subject");
-
-	}
-	
-	//circular layout
-	
-	QVector<QString> contigNames;
-	QVector<unsigned> contigSizes;
-	
-	for(unsigned i = 0; i < precursorLoci->getSize(); i++)
-	{
-		unsigned precIndex = precursorLoci->pos(i);
-		QString contigName = precursorLoci->id(precIndex);
-		
-		if(!contigNames.contains(contigName))
-		{
-			contigNames << contigName;
-			contigSizes << precursorLoci->contigSize(contigName);
-		}
 		
 	}
-
-	for(unsigned i = 0; i < productLoci->getSize(); i++)
-	{
-		unsigned prodIndex = productLoci->pos(i);
-		QString contigName = productLoci->id(prodIndex);
-		if(!contigNames.contains(contigName))
-		{
-			contigNames << contigName;
-			contigSizes << productLoci->contigSize(contigName);
-		}
-	}
-
-	QVector<bool> layeredLoci;
-	for(unsigned i = 0; i < precursorLoci->getSize(); i++) layeredLoci.append(false);
-
 	
-	unsigned numAdded = 0;
-	scene = new QGraphicsScene( -200, -200, 400, 400);
-	unsigned radius = 100;
-	
-	
-	QVector<Layer> layers;
-
-	
-	while( numAdded != precursorLoci->getSize() )
-	{
-		layers.append(Layer(contigSizes, contigNames));
-		Layer *layer;
-		layer = &layers.last();
-
-		for(unsigned i = 0; i < precursorLoci->getSize(); i++)
-		{
-			unsigned precIndex = precursorLoci->pos(i);
-		
-			if(!layeredLoci[precIndex])
-			{
-				QString precName = precursorLoci->id(precIndex);
-				unsigned precU = precursorLoci->uCoord(precIndex);
-				unsigned precD = precursorLoci->dCoord(precIndex);
-
-				unsigned prodIndex = productLoci->pos(i);
-				QString prodName = productLoci->id(prodIndex);
-				unsigned prodU = productLoci->uCoord(prodIndex);
-				unsigned prodD = productLoci->dCoord(prodIndex);
-
-				if(layer->addMatch(precName, prodName, precU, precD, prodU, prodD))
-				{
-					layeredLoci[precIndex] = true;
-					numAdded++;
-				}
-			}
-		}
-		
-		layer->plotLayer(*scene, radius);
-		//PlotLayer pl(layer, *scene, radius);
-		radius += 50;
-	}
-	
-	//qDebug() << layeredLoci;
-	
-	//qDebug() << "precursor loci:";
-	//precursorLoci->print();
-	
-	//qDebug() << "product loci:";
-	//productLoci->print();
-	
-	//layer.print();
-	
-	
-
-	
-	
-	
-	view = new QGraphicsView();
-	view->setRenderHints(QPainter::Antialiasing|
-				   QPainter::TextAntialiasing);
-	view->setScene( scene );
-	
-	
-	
-	view->show();
+	ChordDiagram *chordDiagram = new ChordDiagram(NULL, precursorLoci, productLoci);
+	//chordDiagram->show();
 	
 	//multipleMatchesView = new MultipleMatchesView(NULL, precursorLoci, productLoci, matchesStart, matchesEnd, matchesSubjectStart,
 	//						 matchesSubjectEnd, //queryLength, subjectLength, 
@@ -258,7 +163,7 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QStrin
 	//
 	//mainTab->addTab(multipleMatchesView, "Match map");
 	
-	mainTab->addTab(view, "circular layout");
+	mainTab->addTab(chordDiagram, "Chord Diagram");
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(mainTab);
 	setLayout(mainLayout);

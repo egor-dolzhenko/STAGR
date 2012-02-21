@@ -174,7 +174,7 @@ void Layer::plotLayer(QGraphicsScene &scene, unsigned radius)
     	QVector<qreal> newTerminalAngles;
     	QVector<QColor> newColors;
     	
-    	contigEndAngle = contigStartAngle + layer->size[contigName]*360/L;
+    	contigEndAngle = contigStartAngle + size[contigName]*360/L;
     	
     	qreal segmentStartAngle = contigStartAngle;
     	qreal segmentEndAngle = 0;

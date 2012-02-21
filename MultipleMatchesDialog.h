@@ -22,7 +22,8 @@
 #include "sequenceView.h"
 #include "multipleMatchesView.h"
 #include "hsp.h"
-#include "layer.h"
+//#include "layer.h"
+#include "plotLayer.h"
 
 enum recordType {qseqid, sseqid, pident, length, MISMATCH, gapopen, 
 				 qstart, qend, sstart, send, evalue, bitscore};
