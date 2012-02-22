@@ -357,23 +357,16 @@ void StagrMainWindow::openMDialogMultipleMatches()
 	if( list.count() == 0 )
 		return;
 		
-	//unsigned firstRow = list.at(0).row();
-	QString precursorId = ""; //hspsStats->at(firstRow)[qseqid];
-	QString productId = ""; //hspsStats->at(firstRow)[sseqid];
+	QString precursorId = "";
+	QString productId = "";
 	
-	QSet<QString> precursorIds; //nameReferences
+	QSet<QString> precursorIds;
 	QSet<QString> productIds;
 	
-	//unsigned numberOfRelevantAlignments = 0;
 	for (unsigned i = 0; i < list.count(); i++)
 	{
 		QModelIndex index = list.at(i);
 		unsigned row = index.row();
-		//if (precursorId != hspsStats->at(row)[qseqid])
-		//{
-		//	alert("only one query contig is allowed");
-		//	return;
-		//}
 		precursorIds.insert(hspsStats->at(row)[qseqid]);
 		productIds.insert(hspsStats->at(row)[sseqid]);
 	}
@@ -381,15 +374,12 @@ void StagrMainWindow::openMDialogMultipleMatches()
 	if( precursorIds.size() == 1 ) precursorId = precursorIds.toList()[0];
 	if( productIds.size() == 1 ) productId = productIds.toList()[0]; 
 	
-	//QSetIterator<QString> i(nameReferences);
 	if(multipleMatchesDialog != NULL)
 		delete multipleMatchesDialog;
-	multipleMatchesDialog = new MultipleMatchesDialog(this, hsps, precursorIds, productIds, //nameReferences 
+	multipleMatchesDialog = new MultipleMatchesDialog(this, hsps, precursorIds, productIds,
 													  pullOutFastaSequence(precursorFilename, precursorId), 
 													  pullOutFastaSequence(productFilename, productId),  
-													  filteredAlignments//, //numberOfRelevantAlignments, 
-													  //1000, 1000
-													  ); //"Query" , precursorFilename, productFilename
+													  filteredAlignments);
 													  
 	multipleMatchesDialog->show();
 	multipleMatchesDialog->raise();

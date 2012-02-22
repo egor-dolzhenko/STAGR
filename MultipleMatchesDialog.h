@@ -22,7 +22,6 @@
 #include "sequenceView.h"
 #include "multipleMatchesView.h"
 #include "hsp.h"
-//#include "layer.h"
 #include "plotLayer.h"
 
 enum recordType {qseqid, sseqid, pident, length, MISMATCH, gapopen, 
@@ -38,47 +37,20 @@ public:
 	MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QSet<QString> precursorIds, 
 						  QSet<QString> productIds, QString precursorSequence, 
 						  QString productSequence, 
-						  QVector< QMap<QString,QString> > *filteredAlignments//,
-				  //int numberOfRelevantRecords, 
-				  //int queryLength, int subjectLength
-				  ); //, QString filenameQueryFile, QString filenameReferenceFile
+						  QVector< QMap<QString,QString> > *filteredAlignments);
 	~MultipleMatchesDialog();
 private:
 	QTabWidget *mainTab;
 	QStringList* querySubjectRecords;
-	int numberOfQuerySubjectRecords;
 	Table *tableWithRelevantMatches;
-	int *matchesStart;
-	int *matchesEnd;
-	int *matchesSubjectStart;
-	int *matchesSubjectEnd;
-	int *matchesStartSubject;
-	int *matchesEndSubject;
-	int *matchesSubjectStartSubject;
-	int *matchesSubjectEndSubject;
-	QString *matchesSubjectNames;
 	SequenceView *sequenceView;
 	SequenceView *subjectView;
 	MultipleMatchesView *multipleMatchesView;
-	int myNumberOfRelevantRecords;
-	//void bubbleSortQuerySubjectRecordsByQuery();
-	//void bubbleSortQuerySubjectRecordsBySubject();
-	//int smallestValueOfParameter(recordType param);
-	//int largestValueOfParameter(recordType param);
 	QVector< QMap<QString,QString> > *alignmentsPairContigs;
-	//unsigned smallestValue(QString id);
-	//unsigned largestValue(QString id);
-	//void bubbleSortArraysByQuery();
-	//void bubbleSortArraysByReference();
-	//QString pullOutFastaSequence(QString filename, QString id);
-	QAction *zoomInAction;
-	QAction *zoomOutAction;
 	QVector<Direction> *alignmentsDirection;
 	HSPs *newHsps;
 	HspLoci *precursorLoci;
 	HspLoci *productLoci;
-	//QGraphicsScene *scene;
-	//QGraphicsView *view;
 };
 
 #endif //MULTIPLEMATCHESDIALOG_H
