@@ -64,6 +64,8 @@ class HspLoci
 		unsigned pos(unsigned index);
 		unsigned contigSize(QString contigName);
 		void print();
+		unsigned span();
+		unsigned numIds();
 
 	private:
 		QVector<unsigned> upstreamCoord;

@@ -18,7 +18,7 @@
 #include <QtGui>
 #include "sequenceView.h"
 
-SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence, int newSequenceLength//, int newnumberAlignments, 
+SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence//, int newSequenceLength//, int newnumberAlignments, 
 						   //int* newMatchesStart, int* newMatchesEnd, QString *annotation, QVector<Direction> *newAlignmentsDirection
 						   )
 	:QGraphicsView(parent)
@@ -27,7 +27,7 @@ SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequenc
 	hsps = hspLoci;
 	
 	//references to arrays containing alignment coordinates
-	sequenceLength = newSequenceLength; //don't need to copy
+	sequenceLength = hspLoci->span() + 1; //don't need to copy
 	numberAlignments = hspLoci->getSize();//newnumberAlignments; // //newnumberAlignments don't need to copy
 	//qDebug() << "numberAlignments = " << numberAlignments;
 	

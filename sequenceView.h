@@ -35,7 +35,7 @@ class SequenceView : public QGraphicsView
 	
 	
 public:
-	SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence, int newSequenceLength//, int newnumberAlignments, 
+	SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence//, int newSequenceLength//, int newnumberAlignments, 
 				 //int* newMatchesStart, int* newMatchesEnd, QString *annotation, QVector<Direction> *newAlignmentDirection
 				 );
 	

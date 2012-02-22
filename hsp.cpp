@@ -402,3 +402,23 @@ void HspLoci::print()
 		qDebug() << "contig name = " << id(i) << " U = " << uCoord(i) << " D = " << dCoord(i);
 	}
 }
+
+unsigned HspLoci::span()
+{
+	unsigned maxD = downstreamCoord[0];
+	unsigned minU = upstreamCoord[0];
+	
+	for(unsigned i = 0; i < size; ++i)
+	{
+		if(downstreamCoord[i] > maxD) maxD = downstreamCoord[i];
+		if(upstreamCoord[i] < minU) minU = upstreamCoord[i];
+	}
+	
+	return maxD - minU;
+
+}
+
+unsigned HspLoci::numIds()
+{
+
+}

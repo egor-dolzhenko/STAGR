@@ -35,9 +35,10 @@ class MultipleMatchesDialog : public QDialog
 	Q_OBJECT
 
 public:
-	MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QString queryName, QSet<QString> subjectNames,
-				  QString querySequence, QString subjectSequence,
-				  QVector< QMap<QString,QString> > *filteredAlignments//,
+	MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QSet<QString> precursorIds, 
+						  QSet<QString> productIds, QString precursorSequence, 
+						  QString productSequence, 
+						  QVector< QMap<QString,QString> > *filteredAlignments//,
 				  //int numberOfRelevantRecords, 
 				  //int queryLength, int subjectLength
 				  ); //, QString filenameQueryFile, QString filenameReferenceFile
@@ -65,19 +66,19 @@ private:
 	//int smallestValueOfParameter(recordType param);
 	//int largestValueOfParameter(recordType param);
 	QVector< QMap<QString,QString> > *alignmentsPairContigs;
-	unsigned smallestValue(QString id);
-	unsigned largestValue(QString id);
-	void bubbleSortArraysByQuery();
-	void bubbleSortArraysByReference();
-	QString pullOutFastaSequence(QString filename, QString id);
+	//unsigned smallestValue(QString id);
+	//unsigned largestValue(QString id);
+	//void bubbleSortArraysByQuery();
+	//void bubbleSortArraysByReference();
+	//QString pullOutFastaSequence(QString filename, QString id);
 	QAction *zoomInAction;
 	QAction *zoomOutAction;
 	QVector<Direction> *alignmentsDirection;
 	HSPs *newHsps;
 	HspLoci *precursorLoci;
 	HspLoci *productLoci;
-	QGraphicsScene *scene;
-	QGraphicsView *view;
+	//QGraphicsScene *scene;
+	//QGraphicsView *view;
 };
 
 #endif //MULTIPLEMATCHESDIALOG_H
