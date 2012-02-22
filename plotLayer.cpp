@@ -205,7 +205,6 @@ void Layer::plotLayer(QGraphicsScene &scene, unsigned radius)
 
 Layer::Layer(QVector<unsigned> contigSizes, QVector<QString> contigNames)
 {
-	qDebug() << "layer created";
 	for(unsigned i = 0; i < contigNames.size(); ++i)
 	{
 		QString name = contigNames[i];
@@ -216,7 +215,7 @@ Layer::Layer(QVector<unsigned> contigSizes, QVector<QString> contigNames)
 
 Layer::Layer()
 {
-	qDebug() << "layer default constructor is called";
+	
 }
 
 bool Layer::addMatch(QString precName, QString prodName, unsigned precU, 

@@ -47,7 +47,7 @@ HSPs::HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds)
  			hsps.append(hspCopy);
 		}
 		
-		
+		//4294967281
 		//for(unsigned j = 0; j < hObj->hsps.at(i).size(); ++j)
 		//{
 		//	qDebug() << hObj->hsps.at(i)["qseqid"];
@@ -232,7 +232,11 @@ void HSPs::printTable()
 HspLoci::HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString idId)
 {
 	minUpstream = smallestValue(hsps, upstreamId) - 1; //"qstart"
+	unsigned minDonwsteam = smallestValue(hsps, downstreamId) - 1;
+	if( minDonwsteam < minUpstream ) minUpstream = minDonwsteam;
 	maxDownstream = largestValue(hsps, downstreamId); //"qend"
+	unsigned maxUpstream = largestValue(hsps, upstreamId);
+	if(maxUpstream > maxDownstream) maxDownstream = maxUpstream;
 	//minUpstreamProduct = smallestValue(hsps, "sstart") - 1;
 	//maxDownstreamProduct = largestValue(hsps, "send");
 	
@@ -243,7 +247,9 @@ HspLoci::HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString i
 		unsigned endCoord = hsps->getElement(i,downstreamId).toInt() - minUpstream;
 		
 			//const QString qstartValueString(qstartValue);
-			
+		
+		//if(beginCoord == 4294967281) qDebug() << "!!!!!!!!!";
+		//if(endCoord == 4294967281) qDebug() << "11111111111111";
 		if(beginCoord > endCoord)
 		{
 			upstreamCoord.append(endCoord);

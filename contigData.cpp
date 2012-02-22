@@ -2,7 +2,7 @@
 
 ContigData::ContigData()
 {
-	//qDebug() << "object created";
+	
 }
 
 unsigned ContigData::max(unsigned a, unsigned b)
@@ -86,10 +86,6 @@ int ContigData::checkPosition(unsigned U, unsigned D)
 	}
 	
 	//check size 2-1
-	qDebug() << "checkHole(size - 2)" << checkHole(size - 2);
-	qDebug() << "checkTwoU(size - 2, U, D)" << checkTwoU(size - 2, U, D);
-	qDebug() << "checkOneD(size - 2, U, D)" << checkOneD(size - 2, U, D);
-
 	if( checkHole(size - 2) && checkTwoU(size - 2, U, D) && checkOneD(size - 2, U, D) )
 	{
 		return size - 1;

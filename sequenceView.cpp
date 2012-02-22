@@ -18,9 +18,7 @@
 #include <QtGui>
 #include "sequenceView.h"
 
-SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence//, int newSequenceLength//, int newnumberAlignments, 
-						   //int* newMatchesStart, int* newMatchesEnd, QString *annotation, QVector<Direction> *newAlignmentsDirection
-						   )
+SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence)
 	:QGraphicsView(parent)
 {
 	
@@ -28,23 +26,12 @@ SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequenc
 	
 	//references to arrays containing alignment coordinates
 	sequenceLength = hspLoci->span() + 1; //don't need to copy
-	numberAlignments = hspLoci->getSize();//newnumberAlignments; // //newnumberAlignments don't need to copy
-	//qDebug() << "numberAlignments = " << numberAlignments;
+	//qDebug() << "sequence lenght = " << sequenceLength;
+	//hspLoci->print();
 	
-	//matchesStart = new int[numberAlignments];
-	//matchesEnd = new int[numberAlignments];
-	//matchNames = new QString[numberAlignments];
-	
-	//for(unsigned i = 0; i < numberAlignments; ++i)
-	//{
-	//	matchNames[i] = annotation[i];
-	//	matchesStart[i] = newMatchesStart[i]; //need to copy
-	//	matchesEnd[i] = newMatchesEnd[i]; //need to copy
-	//}	
+	numberAlignments = hspLoci->getSize();
 
-	
 	sequence = newSequence; //don't need to copy
-	//alignmentsDirection = newAlignmentsDirection; //need to copy
 
 	//width of each nucleotide
 	nucleotideWidth = 7;
@@ -68,9 +55,7 @@ SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequenc
 	windowHeight = 0;
 	windowWidth = 0;
 	alwaysShowNucleotides = true;
-	
-	
-	
+		
 }
 
 void SequenceView::createScene(int width, int height)
