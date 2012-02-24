@@ -36,7 +36,6 @@ public:
 	HSPs();
 	HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds);
 	QString loadData(PyObject *output);
-	QVector< QMap<QString,QString> > *matchesToPrecursorId(QString id);
 	float getAverage(QString precursorId, QString productId, QString fieldName);
 	QSet<QString>* getAllValues(QString fieldName);
 	unsigned numHSPs(QString precursorId, QString productId);
@@ -65,7 +64,6 @@ class HspLoci
 		unsigned contigSize(QString contigName);
 		void print();
 		unsigned span();
-		unsigned numIds();
 
 	private:
 		QVector<unsigned> upstreamCoord;

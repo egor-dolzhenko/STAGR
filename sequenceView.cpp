@@ -26,12 +26,10 @@ SequenceView::SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequenc
 	
 	//references to arrays containing alignment coordinates
 	sequenceLength = hspLoci->span() + 1; //don't need to copy
-	//qDebug() << "sequence lenght = " << sequenceLength;
-	//hspLoci->print();
 	
 	numberAlignments = hspLoci->getSize();
 
-	sequence = newSequence; //don't need to copy
+	sequence = newSequence;
 
 	//width of each nucleotide
 	nucleotideWidth = 7;
@@ -181,7 +179,7 @@ void SequenceView::createScene(int width, int height)
 			if( (matchStart < rowBegin) && 
 				(rowBegin <= matchEnd ) && (matchEnd <= rowEnd)  )
 			{
-				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_INCOMPLETE_LEFT; //(*alignmentsDirection)[matchIndex]
+				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_INCOMPLETE_LEFT; 
 				else blockType = BLOCK_POINT_RIGHT_INCOMPLETE;
 				
 				block = new Block((matchEnd - rowBegin + 1)*nucleotideWidth,
@@ -193,7 +191,7 @@ void SequenceView::createScene(int width, int height)
 			//begins and ends in this row
 			else if ( (rowBegin <= matchStart) && ( matchEnd <= rowEnd ) )
 			{
-				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_POINT_LEFT; //(*alignmentsDirection)[matchIndex]
+				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_POINT_LEFT; 
 				else blockType = BLOCK_POINT_RIGHT;
 
 				block = new Block((matchEnd - matchStart + 1)*nucleotideWidth,
@@ -206,7 +204,7 @@ void SequenceView::createScene(int width, int height)
 			else if ( (rowBegin <= matchStart) && ( matchStart <= rowEnd )
 					  && (rowEnd < matchEnd) )
 			{
-				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_POINT_LEFT_INCOMPLETE; //(*alignmentsDirection)[matchIndex]
+				if(hsps->dir(matchIndex) == LEFT) blockType = BLOCK_POINT_LEFT_INCOMPLETE; 
 				else blockType = BLOCK_INCOMPLETE_RIGHT;
 
 				block = new Block((rowEnd - matchStart  + 1)*nucleotideWidth, trackHeight, blockType, color );

@@ -410,8 +410,8 @@ void StagrMainWindow::getAlignmentsSummary()
 	QString precursorId;
 	QString productId;
 	
-	QSet<QString> *precursorIds = hsps->getAllValues("qseqid");
-	QSet<QString> *productIds = hsps->getAllValues("sseqid");
+	QSet<QString> *precursorIds = hsps->getAllValues("precursorId");
+	QSet<QString> *productIds = hsps->getAllValues("productId");
 	
 	QSetIterator<QString> precursorIdIterator(*precursorIds);
 	

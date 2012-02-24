@@ -6,7 +6,6 @@
 
 class QGraphicsScene;
 class HspLoci;
-//class Layer;
 
 class ChordDiagram : public QGraphicsView
 {

@@ -2,7 +2,6 @@
 #include <QGraphicsScene>
 #include "chordDiagram.h"
 #include "hsp.h"
-//#include "plotLayer.h"
 
 ChordDiagram::ChordDiagram(QWidget *parent, HspLoci *precursorLoci, HspLoci *productLoci)
 	:QGraphicsView(parent)
@@ -11,12 +10,6 @@ ChordDiagram::ChordDiagram(QWidget *parent, HspLoci *precursorLoci, HspLoci *pro
 	//circular layout
 	QVector<QString> contigNames;
 	QVector<unsigned> contigSizes;
-	
-	//qDebug() << "precursor loci";
-	//precursorLoci->print();
-	
-	//qDebug() << "product loci";
-	//productLoci->print();
 	
 	for(unsigned i = 0; i < precursorLoci->getSize(); i++)
 	{
@@ -44,10 +37,8 @@ ChordDiagram::ChordDiagram(QWidget *parent, HspLoci *precursorLoci, HspLoci *pro
 
 	QVector<bool> layeredLoci;
 	for(unsigned i = 0; i < precursorLoci->getSize(); i++) layeredLoci.append(false);
-
 	
 	unsigned numAdded = 0;
-	//scene = new QGraphicsScene( -200, -200, 400, 400);
 	
 	radius = 100;
 	
@@ -90,7 +81,6 @@ ChordDiagram::ChordDiagram(QWidget *parent, HspLoci *precursorLoci, HspLoci *pro
 	width = 400;
 	height = 400;
 	plotDiagram();
-	//plotLayers();
 
 	
 }
@@ -112,16 +102,18 @@ void ChordDiagram::clear()
 void ChordDiagram::plotLayers()
 {
 	unsigned layerRadius = radius;
+	
 	for(unsigned i = 0; i < layers.size(); ++i)
 	{
 		layers[i].plotLayer(scene, layerRadius);
 		layerRadius += 50;
 	}
+	
+	layers[0].plotArcs(scene, radius);
 }
 
 void ChordDiagram::plotDiagram() // 400, 400
 {
-	//scene.setSceneRect(-width/2, -height/2, width, height);
 	clear();
 	plotLayers();
 }

@@ -19,6 +19,7 @@
 #define SCRIPTEDITDIALOG_H
 
 #include <QDialog>
+#include "scriptHighlighter.h"
 
 class QTextEdit;
 
@@ -32,6 +33,7 @@ public:
 	
 private:
 	QTextEdit *editor;
+	ScriptHighlighter *scriptHighlighter;
 	
 };
 

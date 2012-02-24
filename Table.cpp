@@ -28,7 +28,6 @@ Table::Table(QWidget* parent, QStringList header,
 	setHorizontalHeaderLabels(header);
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
-	//setSelectionMode(QAbstractItemView::SingleSelection);
 	horizontalHeader()->setHighlightSections(false);
 	for(int rowIndex = 0; rowIndex < numberOfEntries; rowIndex++)
 	{
@@ -84,11 +83,24 @@ Table::Table(QWidget* parent, QStringList header, QVector<QStringList> *entries)
 
 }
 
-Table::Table(QWidget* parent, HSPs *hsps) //
+Table::Table(QWidget* parent, HSPs *hsps)
 {
 	QStringList *header = hsps->getKeys();
-	qDebug() << "header = ";
-	qDebug() << *header;
+	
+	QStringList headerFirst;
+	headerFirst << "gapopen" << "mismatch" << "length"
+				<< "productEnd" << "productStart" << "precursorEnd"
+				<< "precursorStart" << "productId"<< "precursorId";
+	
+	for(unsigned i = 0; i < headerFirst.size(); i++)
+	{
+	
+		unsigned index = header->indexOf(headerFirst[i]);
+		if(index != -1) header->removeAt(index);
+		header->prepend(headerFirst[i]);
+	
+	}
+		
 	setRowCount(hsps->numHSPs());
 	setColumnCount(header->size());
 	setAlternatingRowColors(true);

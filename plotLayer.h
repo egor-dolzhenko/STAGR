@@ -7,6 +7,7 @@
 #include <QtCore>
 //#include "layer.h"
 #include "contigData.h"
+#include "layerArcs.h"
 
 class Region : public QGraphicsPathItem
 {
@@ -64,6 +65,7 @@ public:
 	Layer();
 
 	void plotLayer(QGraphicsScene &scene, unsigned radius);
+	void plotArcs(QGraphicsScene &scene, unsigned radius);
 	
 	bool addMatch(QString precName, QString prodName, unsigned precU, 
 			 unsigned precD, unsigned prodU, unsigned prodD);
@@ -71,12 +73,17 @@ public:
 	void print();
 	
 	QMap<QString, ContigData> contigs;
+	LayerArcs layerArcs;
+	//QMap<QString, QVector<unsigned> > ArcsFrom;
+	//QMap<QString, QVector<unsigned> > ArcsTo;
 	
 	QMap<QString, unsigned> size;
 	
 private:
 
 	int checkInsertable(QVector<unsigned> &Us, QVector<unsigned> &Ds, unsigned U, unsigned D);
+	QMap<QString, unsigned> contigStartAngles;
+	qreal totalLen;
 	
 };
 

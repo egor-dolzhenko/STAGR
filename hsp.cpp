@@ -29,8 +29,8 @@ HSPs::HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds)
 	for(unsigned i = 0; i < hObj->hsps.size(); ++i)
 	{
 		QMap<QString,QString> hsp = hObj->hsps.at(i);
-		QString precursorId = hsp["qseqid"];
- 		QString productId = hsp["sseqid"];
+		QString precursorId = hsp["precursorId"];
+ 		QString productId = hsp["productId"];
 		if( precursorIds.contains(precursorId) && productIds.contains(productId) )
 		{
 			QMapIterator<QString, QString> j(hObj->hsps.at(i));
@@ -40,63 +40,14 @@ HSPs::HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds)
 			while (j.hasNext())
 			{
      			j.next();
-     			hspCopy[j.key()] = j.value(); //(*hspCopy)
-     			//qDebug() << j.key() << ": " << j.value();
+     			hspCopy[j.key()] = j.value();
  			}
  			
  			hsps.append(hspCopy);
 		}
 		
-		//4294967281
-		//for(unsigned j = 0; j < hObj->hsps.at(i).size(); ++j)
-		//{
-		//	qDebug() << hObj->hsps.at(i)["qseqid"];
-		//}
 	}
 	
-	//calculateCoordinates();
-
-// 	alignmentsPairContigs = new QVector< QMap<QString,QString> >(0);
-// 	alignmentsDirection = new QVector<Direction>(0);
-// 	
-// 	QString qseqidValue("");
-// 	QString sseqidValue("");
-// 	for(unsigned i = 0; i < filteredAlignments->size(); ++i)
-// 	{
-// 		qseqidValue = filteredAlignments->at(i)["qseqid"];
-// 		sseqidValue = filteredAlignments->at(i)["sseqid"];
-// 		if( (qseqidValue == queryName) && (subjectNames.contains(sseqidValue)) )
-// 		{
-// 			
-// 			unsigned qstartValue = filteredAlignments->at(i)["qstart"].toInt();
-// 			unsigned qendValue = filteredAlignments->at(i)["qend"].toInt();
-// 			unsigned sstartValue = filteredAlignments->at(i)["sstart"].toInt();
-// 			unsigned sendValue = filteredAlignments->at(i)["send"].toInt();
-// 			QString qendValueString(qendValue);
-// 			const QString qstartValueString(qstartValue);
-// 			if(qstartValue > qendValue)
-// 			{
-// 				(*filteredAlignments)[i].insert("qstart", QString::number(qendValue));
-// 				(*filteredAlignments)[i].insert("qend", QString::number(qstartValue));
-// 				alignmentsDirection->append(LEFT);
-// 			}
-// 			else if(sstartValue > sendValue)
-// 			{
-// 				(*filteredAlignments)[i].insert("sstart", QString::number(sendValue));
-// 				(*filteredAlignments)[i].insert("send", QString::number(sstartValue));
-// 				alignmentsDirection->append(LEFT);
-// 			}
-// 			else
-// 			{
-// 				alignmentsDirection->append(RIGHT);
-// 			}
-// 
-// 			alignmentsPairContigs->append(filteredAlignments->at(i)); //QMap<QString,QString>()
-// 		}
-// 	}	
-// 	
-// 	QStringList header;
-// 	header = filteredAlignments->at(0).keys();
 }
 
 QString HSPs::loadData(PyObject *output)
@@ -140,16 +91,9 @@ QString HSPs::loadData(PyObject *output)
 		hsps.append(hsp);
 	}
 	
-	//calculateCoordinates();
-	
 	return "";
 }
 
-
-QVector< QMap<QString,QString> > *HSPs::matchesToPrecursorId(QString id)
-{
-
-}
 
 float HSPs::getAverage(QString precursorId, QString productId, QString fieldName)
 {
@@ -158,7 +102,7 @@ float HSPs::getAverage(QString precursorId, QString productId, QString fieldName
 	
 	for(unsigned i = 0; i < hsps.size(); i++)
 	{
-		if( (precursorId == hsps.at(i)["qseqid"]) && (productId == hsps.at(i)["sseqid"]) )
+		if( (precursorId == hsps.at(i)["precursorId"]) && (productId == hsps.at(i)["productId"]) )
 		{
 			sum += hsps.at(i)[fieldName].toInt();
 			numHspsFound++;
@@ -188,7 +132,7 @@ unsigned HSPs::numHSPs(QString precursorId, QString productId)
 	
 	for(unsigned i = 0; i < hsps.size(); i++)
 	{
-		if( (precursorId == hsps.at(i)["qseqid"]) && (productId == hsps.at(i)["sseqid"]) )
+		if( (precursorId == hsps.at(i)["precursorId"]) && (productId == hsps.at(i)["productId"]) )
 		{
 			numHspsFound++;
 		}
@@ -231,14 +175,12 @@ void HSPs::printTable()
 
 HspLoci::HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString idId)
 {
-	minUpstream = smallestValue(hsps, upstreamId) - 1; //"qstart"
+	minUpstream = smallestValue(hsps, upstreamId) - 1;
 	unsigned minDonwsteam = smallestValue(hsps, downstreamId) - 1;
 	if( minDonwsteam < minUpstream ) minUpstream = minDonwsteam;
-	maxDownstream = largestValue(hsps, downstreamId); //"qend"
+	maxDownstream = largestValue(hsps, downstreamId);
 	unsigned maxUpstream = largestValue(hsps, upstreamId);
 	if(maxUpstream > maxDownstream) maxDownstream = maxUpstream;
-	//minUpstreamProduct = smallestValue(hsps, "sstart") - 1;
-	//maxDownstreamProduct = largestValue(hsps, "send");
 	
 	for(unsigned i = 0; i < hsps->numHSPs(); ++i)
 	{
@@ -246,10 +188,6 @@ HspLoci::HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString i
 		unsigned beginCoord = hsps->getElement(i,upstreamId).toInt() - minUpstream;
 		unsigned endCoord = hsps->getElement(i,downstreamId).toInt() - minUpstream;
 		
-			//const QString qstartValueString(qstartValue);
-		
-		//if(beginCoord == 4294967281) qDebug() << "!!!!!!!!!";
-		//if(endCoord == 4294967281) qDebug() << "11111111111111";
 		if(beginCoord > endCoord)
 		{
 			upstreamCoord.append(endCoord);
@@ -267,11 +205,6 @@ HspLoci::HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString i
 		
 		position.append(i);
 		
-		//upstreamCoord.append(hsps->getElement(i,upstreamId).toInt() - minUpstream);
-		//downstreamCoord.append(hsps->getElement(i,downstreamId).toInt() - minUpstream);
-		
-		//prodUpstreamCoord.append(hsps->getElement(i,"sstart").toInt() - minUpstreamProduct);
-		//prodDownstreamCoord.append(hsps->getElement(i,"send").toInt() - minUpstreamProduct);
 	}
 
 	size = hsps->numHSPs();
@@ -421,10 +354,4 @@ unsigned HspLoci::span()
 	}
 	
 	return maxD - minU;
-
-}
-
-unsigned HspLoci::numIds()
-{
-
 }

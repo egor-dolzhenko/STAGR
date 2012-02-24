@@ -29,8 +29,8 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QSet<Q
 {
 
 	newHsps = new HSPs(hsps, precursorIds, productIds);
-	precursorLoci = new HspLoci(newHsps, "qstart", "qend", "sseqid");
-	productLoci = new HspLoci(newHsps, "sstart", "send", "qseqid");
+	precursorLoci = new HspLoci(newHsps, "precursorStart", "precursorEnd", "productId");
+	productLoci = new HspLoci(newHsps, "productStart", "productEnd", "precursorId");
 	
 	alignmentsPairContigs = new QVector< QMap<QString,QString> >(0);
 	alignmentsDirection = new QVector<Direction>(0);

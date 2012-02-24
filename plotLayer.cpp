@@ -1,5 +1,7 @@
 #include "plotLayer.h"
 
+#define PI 3.14159
+
 Region::Region(unsigned radius, unsigned width, qreal initialAngle, 
 			   qreal terminalAngle, qreal upstreamNeighborTerminalAngle, 
 			   qreal donwstreamNeighborInitialAngle, QColor color)
@@ -143,7 +145,6 @@ void Contig::plotContig(QGraphicsScene &scene, unsigned radius)
 
 void Layer::plotLayer(QGraphicsScene &scene, unsigned radius)
 {
-	//QMap<QString, ContigData> *contigs = &layer->contigs;
 	
 	QMap<QString, ContigData>::iterator i;
 	
@@ -159,7 +160,9 @@ void Layer::plotLayer(QGraphicsScene &scene, unsigned radius)
 		++i;
 	}
 	
-	gap = gap*360/L; //from nt to deg
+	totalLen = L;
+	
+	gap = gap*360/L; 
 	
 	i = contigs.begin();
 	qreal contigStartAngle = 0;
@@ -178,29 +181,91 @@ void Layer::plotLayer(QGraphicsScene &scene, unsigned radius)
     	
     	qreal segmentStartAngle = contigStartAngle;
     	qreal segmentEndAngle = 0;
+
+		contigStartAngles[contigName] = contigStartAngle;    	
     	
     	for(int j = 0; j < contig->Us.size(); j++)
     	{
     		//initial angle for sequence i
     		qreal U = contig->Us[j];
     		qreal D = contig->Ds[j];
+    		QColor color = contig->Cols[j];
     		
     		segmentStartAngle = contigStartAngle + U*360/L;
 			segmentEndAngle = segmentStartAngle + (D - U)*360/L;
-    			
+    		
     		newInitialAngles.append(segmentStartAngle);
     		newTerminalAngles.append(segmentEndAngle);
-    		newColors.append(QColor(rand()%255,rand()%255,rand()%255));
+    		newColors.append(color); 
     	}
     	
     	Contig ctg(contigStartAngle, contigEndAngle, newInitialAngles, newTerminalAngles, newColors);
-    	ctg.print();
+    	
 		ctg.plotContig(scene, radius);
 		
 		contigStartAngle = contigEndAngle + gap;
 		
      ++i;
  	}
+}
+
+void Layer::plotArcs(QGraphicsScene &scene, unsigned radius)
+{
+
+	QMap<QString, QMap<QString, QVector<unsigned> > >::iterator Prec;
+	QMap<QString, QVector<unsigned> >::iterator Prod;
+	
+	Prec = layerArcs.precPos.begin();
+	
+	while( Prec != layerArcs.precPos.end() )
+	{
+		qreal precStartAngle = contigStartAngles[Prec.key()];
+		
+		Prod = Prec.value().begin();	
+		
+		while( Prod != Prec.value().end() ) 
+		{
+			
+			qreal prodStartAngle = contigStartAngles[Prod.key()];
+			
+			QVector<unsigned> *precLoci = &Prod.value();
+			QVector<unsigned> *prodLoci = &layerArcs.prodPos[Prec.key()][Prod.key()];
+			
+			for(unsigned index = 0; index < precLoci->size(); index++)
+			{
+ 				qreal precX = 360*(precLoci->at(index))/totalLen + precStartAngle; //
+ 				qreal precY = 360*(precLoci->at(index))/totalLen + precStartAngle; //
+				
+				qreal prodX = 360*(prodLoci->at(index))/totalLen + prodStartAngle; //
+ 				qreal prodY = 360*(prodLoci->at(index))/totalLen + prodStartAngle; //
+								
+				precX = (radius-20)*qCos(PI*precX/180);
+ 				precY = (radius-20)*qSin(PI*precY/180);
+
+				prodX = (radius-20)*qCos(PI*prodX/180);
+				prodY = (radius-20)*qSin(PI*prodY/180);
+
+				QGraphicsPathItem *arc = new QGraphicsPathItem();
+
+				QPainterPath p = arc->path();
+				p.moveTo(precX, -precY);
+				//p.lineTo(QPointF(prodX, -prodY));
+				//p.cubicTo(QPointF(0,0), QPointF(0,0), QPointF(prodX, -prodY) );
+				p.quadTo(QPointF(0,0), QPointF(prodX, -prodY));
+								
+				arc->setPath(p);
+				QPen pen;
+				pen.setStyle(Qt::DashLine);
+ 				arc->setPen(pen);
+ 				scene.addItem(arc);
+ 				
+			}
+			++Prod;
+		}
+		
+		++Prec;
+	}
+	
 }
 
 Layer::Layer(QVector<unsigned> contigSizes, QVector<QString> contigNames)
@@ -230,18 +295,22 @@ bool Layer::addMatch(QString precName, QString prodName, unsigned precU,
 	
 	if( (precPos == -1) || (prodPos == -1) ) return false;
 	
-	precContig->include(precU, precD, precPos);
-	prodContig->include(prodU, prodD, prodPos);
+	QColor color(rand()%255,rand()%255,rand()%255);
+	precContig->include(precU, precD, color, precPos);
+	prodContig->include(prodU, prodD, color, prodPos);
+	
+	layerArcs.precPos[precName][prodName].append( (precU + precD)/2 );
+	layerArcs.prodPos[precName][prodName].append( (prodU + prodD)/2 );
 	
 	return true;
-
 }
 
 void Layer::print()
 {
  	QMap<QString, ContigData>::iterator i = contigs.begin();
 	
-	while (i != contigs.end()) {
+	while (i != contigs.end()) 
+	{
     	qDebug() << i.key() << ": "; 
     	(i.value()).print();
     	++i;

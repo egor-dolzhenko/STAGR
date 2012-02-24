@@ -103,17 +103,19 @@ int ContigData::checkPosition(unsigned U, unsigned D)
 	return -1;
 }
 
-void ContigData::include(unsigned U, unsigned D, int position)
+void ContigData::include(unsigned U, unsigned D, QColor color, int position)
 {
 	if(Us.size() == 0)
 	{
 		Us.append(U);
 		Ds.append(D);
+		Cols.append(color);
 	}
 	else
 	{
 		Us.insert(position, U);
 		Ds.insert(position, D);
+		Cols.insert(position, color);
 	}
 }
 

@@ -16,13 +16,20 @@
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
+#include "scriptHighlighter.h"
 #include "scriptEditDialog.h"
 
 ScriptEditDialog::ScriptEditDialog(QWidget *parent)
 	:QDialog(parent)
 {
 	editor = new QTextEdit;
-	editor->setText("import operator\n\ndef annotate(initialAlignment):\n    #print initialAlignment\n    #x = initialAlignment[0]\n    print str(initialAlignment)\n    return initialAlignment");
+	QFont font1("Monospace");
+	font1.setStyleHint(QFont::TypeWriter);
+	editor->setFont(font1);
+	editor->setLineWrapMode(QTextEdit::NoWrap);
+	scriptHighlighter = new ScriptHighlighter(editor->document());
+	
+	editor->setText("import operator\n\ndef annotate(initialAlignment):\n  return initialAlignment");
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(editor);
 	setLayout(mainLayout);
