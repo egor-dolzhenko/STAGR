@@ -1,0 +1,13 @@
+<!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+     <file>icons/loadSequencesIcon.png</file>
+     <file>icons/pythonIcon.png</file>
+     <file>icons/settingsIcon.png</file>
+     <file>icons/stagrSettingsIcon.png</file>
+     <file>icons/startIcon.png</file>
+     <file>MAC.fasta</file>
+     <file>MIC.fasta</file>
+     <file>output2dict.py</file>
+     <file>script.py</file>
+ </qresource>
+</RCC>

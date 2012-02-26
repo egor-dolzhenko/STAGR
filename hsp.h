@@ -53,31 +53,31 @@ private:
 
 class HspLoci
 {
-	public:
-		HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString idId);
-		unsigned uCoord(unsigned index);
-		unsigned dCoord(unsigned index);
-		QString id(unsigned index);
-		unsigned getSize();
-		Direction dir(unsigned index);
-		unsigned pos(unsigned index);
-		unsigned contigSize(QString contigName);
-		void print();
-		unsigned span();
 
-	private:
-		QVector<unsigned> upstreamCoord;
-		QVector<unsigned> downstreamCoord;
-		QVector<unsigned> position;
-		QVector<Direction> dirs;
-		QStringList ids;
-		unsigned minUpstream;
-		unsigned maxDownstream;
-		unsigned smallestValue(HSPs *hsps, QString id);
-		unsigned largestValue(HSPs *hsps, QString id);
-		void sort();
-		unsigned size;
+public:
+	HspLoci(HSPs *hsps, QString upstreamId, QString downstreamId, QString idId);
+	unsigned uCoord(unsigned index);
+	unsigned dCoord(unsigned index);
+	QString id(unsigned index);
+	unsigned getSize();
+	Direction dir(unsigned index);
+	unsigned pos(unsigned index);
+	unsigned contigSize(QString contigName);
+	void print();
+	unsigned span();
 
+private:
+	QVector<unsigned> upstreamCoord;
+	QVector<unsigned> downstreamCoord;
+	QVector<unsigned> position;
+	QVector<Direction> dirs;
+	QStringList ids;
+	unsigned minUpstream;
+	unsigned maxDownstream;
+	unsigned smallestValue(HSPs *hsps, QString id);
+	unsigned largestValue(HSPs *hsps, QString id);
+	void sort();
+	unsigned size;
 
 };
 

@@ -33,6 +33,8 @@
 
 #include "scriptEditDialog.h"
 
+#include "pathSettingsDialog.h"
+
 #include "hsp.h"
 
 //Location of the header file for including Python interpreter into STAGR
@@ -68,6 +70,9 @@ private slots:
 	
 	//Opens blat settings dialog
 	void openBlatSettingsDialog();
+	
+	//Opens path settings dialog
+	void openPathSettingsDialog();
 	
 	//get precursor filename from user through a file dialog
 	void getPrecursorFilename();
@@ -167,10 +172,9 @@ private:
 	QActionGroup *alignmentGroup;
 	
 	QAction *startEditorAction;
-		
-	//Dialog containing match information for a particular pair of contigs
-	//MatchesDialog *matchesDialog;
 	
+	QAction *openPathSettingsAction;
+		
 	//Dialog containing summary information about matches corresponding to
 	//a particular query contig and multiple reference contigs
 	MultipleMatchesDialog *multipleMatchesDialog;
@@ -183,6 +187,8 @@ private:
 	
 	ScriptEditDialog* scriptEditDialog;
 	
+	PathSettingsDialog* pathSettingsDialog;
+	
 	//Contains information about alignments found by blast
 	QStringList* alignments;
 	
@@ -192,12 +198,6 @@ private:
 	//Summary about alignments between pairs of contigs
 	QVector<QStringList> *hspsStats;
 		
-	//Lengths of query contigs
-	QMap <QString, unsigned> queryLengths;
-	
-	//Lengths of matches contigs
-	QMap <QString, unsigned> referenceLengths;
-	
 	//name of the query file
 	QString precursorFilename;
 	
@@ -212,10 +212,9 @@ private:
 	
 	QMenu *fileMenu;
 	QMenu *alignmentMenu;
+	QMenu *setPathsMenu;
 	
 	InitialAligner currentAligner;
-	
-	QVector< QMap<QString,QString> > *filteredAlignments;
 	
 	QString pullOutFastaSequence(QString filename, QString id);
 	

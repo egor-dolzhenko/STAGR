@@ -22,6 +22,7 @@
 #include "scriptHighlighter.h"
 
 class QTextEdit;
+class QPushButton;
 
 class ScriptEditDialog : public QDialog
 {
@@ -34,7 +35,12 @@ public:
 private:
 	QTextEdit *editor;
 	ScriptHighlighter *scriptHighlighter;
+	QPushButton *saveButton;
+	QPushButton *loadButton;
 	
+private slots:
+	void saveScript();
+	void loadScript();
 };
 
 #endif //SCRIPTEDITDIALOG_H

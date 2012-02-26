@@ -5,11 +5,11 @@
 
 class LayerArcs
 {
+
 public:
 	LayerArcs();
 	QMap<QString, QMap<QString, QVector<unsigned> > > precPos;
 	QMap<QString, QMap<QString, QVector<unsigned> > > prodPos;
-	//QVector<unsigned> precPos;
-	//QVector<unsigned> prodPos; 
+	
 };
 #endif

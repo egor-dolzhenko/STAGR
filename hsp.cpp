@@ -35,7 +35,7 @@ HSPs::HSPs(HSPs *hObj, QSet<QString> &precursorIds, QSet<QString> &productIds)
 		{
 			QMapIterator<QString, QString> j(hObj->hsps.at(i));
 			
-			QMap<QString, QString> hspCopy;// = new QMap<QString, QString>(0);
+			QMap<QString, QString> hspCopy;
 			
 			while (j.hasNext())
 			{
@@ -93,7 +93,6 @@ QString HSPs::loadData(PyObject *output)
 	
 	return "";
 }
-
 
 float HSPs::getAverage(QString precursorId, QString productId, QString fieldName)
 {

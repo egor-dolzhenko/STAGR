@@ -76,7 +76,6 @@ void Block::paint(QPainter *painter,
 	{
 	
 		int numPointsWiggle = myHeight/5 - 1;
-		//qDebug() << numPointsWiggle;
 		numPoints = 4 + numPointsWiggle;
 		points = new QPointF[numPoints];
 		
@@ -98,7 +97,6 @@ void Block::paint(QPainter *painter,
 	{
 
 		int numPointsWiggle = myHeight/5 - 1;
-		//qDebug() << numPointsWiggle;
 		numPoints = 4 + numPointsWiggle;
 		points = new QPointF[numPoints];
 		
@@ -119,7 +117,6 @@ void Block::paint(QPainter *painter,
 	}else if (myBlockType == BLOCK_POINT_LEFT_INCOMPLETE)
 	{
 		int numPointsWiggle = myHeight/5 - 1;
-		//qDebug() << numPointsWiggle;
 		numPoints = 5 + numPointsWiggle;
 		points = new QPointF[numPoints];
 		
@@ -144,7 +141,6 @@ void Block::paint(QPainter *painter,
 	}else if (myBlockType == BLOCK_POINT_RIGHT_INCOMPLETE)
 	{
 		int numPointsWiggle = myHeight/5 - 1;
-		//qDebug() << numPointsWiggle;
 		numPoints = 5 + numPointsWiggle;
 		points = new QPointF[numPoints];
 		

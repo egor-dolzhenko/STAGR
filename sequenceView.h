@@ -35,8 +35,7 @@ class SequenceView : public QGraphicsView
 	
 	
 public:
-	SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence//, int newSequenceLength//, int newnumberAlignments, 
-				 //int* newMatchesStart, int* newMatchesEnd, QString *annotation, QVector<Direction> *newAlignmentDirection
+	SequenceView(QWidget* parent, HspLoci *hspLoci, QString newSequence
 				 );
 	
 protected:
@@ -52,10 +51,7 @@ private:
 	void clearScene();
 	int sequenceLength;
 	int numberAlignments;
-	//int* matchesStart;
-	//int* matchesEnd;
 	QColor colorForMatchIndex(int index);
-	//QString *matchNames;
 	void Annotate(int x, int y, int width, int height, int matchIndex);
 	QFont setFontSize(int pixelsPerNucleotide, int nucleotidesPerRow, QString firstRow, QFont font);
 	QString sequence;
@@ -66,7 +62,6 @@ private:
 	int timerIterations;
 	int nucleotideWidth;
 	bool alwaysShowNucleotides;
-	//QVector<Direction> *alignmentsDirection;
 	HspLoci *hsps;
 };
 

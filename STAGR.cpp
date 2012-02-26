@@ -39,18 +39,17 @@ StagrMainWindow::StagrMainWindow(QWidget *parent)
 	numAlignments = 0;
 	
 	//The default filenames
-	precursorFilename = "MIC.fasta";
-	productFilename = "MAC.fasta";
+	precursorFilename = "";//"MIC.fasta";
+	productFilename = "";//"MAC.fasta";
 
 	querySequenceInformationLayout = new QHBoxLayout;
-	querySequenceLabel = new QLabel("File with query sequences:");
+	querySequenceLabel = new QLabel("Precursor sequences:");
 	querySequenceFilenameLabel = new QLabel(precursorFilename); 
 	querySequenceInformationLayout->addWidget(querySequenceLabel);
 	querySequenceInformationLayout->addWidget(querySequenceFilenameLabel);
 	
-	
 	referenceSequenceInformationLayout = new QHBoxLayout;
-	referenceSequenceLabel = new QLabel("File with reference sequences:");
+	referenceSequenceLabel = new QLabel("Product sequences:");
 	referenceSequenceFilenameLabel = new QLabel(productFilename);
 	referenceSequenceInformationLayout = new QHBoxLayout;
 	referenceSequenceInformationLayout->addWidget(referenceSequenceLabel);
@@ -67,6 +66,7 @@ StagrMainWindow::StagrMainWindow(QWidget *parent)
 	blastnSettingsDialog = new BlastnSettingsDialog(this);
 	blatSettingsDialog = new BlatSettingsDialog(this);
 	scriptEditDialog = new ScriptEditDialog(this);
+	pathSettingsDialog = new PathSettingsDialog(this);
 
 	runBlastnAction = new QAction(this);
 	runBlatAction = new QAction(this);
@@ -96,17 +96,14 @@ void StagrMainWindow::createToolBar()
 {
 	startAction = new QAction("Start", this);
 	settingsAction = new QAction("Blastn settings", this);
-	//loadSequencesAction = new QAction("Load sequences", this);
 	stagrSettingsAction = new QAction("STAGR settings", this);
 	filteringAction = new QAction("Filtering Script",this);
 	startEditorAction = new QAction("Script Editor", this);
-	startAction->setIcon(QIcon("icons/startIcon.png"));
-	settingsAction->setIcon(QIcon("icons/settingsIcon.png"));
-	//loadSequencesAction->setIcon(QIcon("icons/loadSequencesIcon.png"));
-	startEditorAction->setIcon(QIcon("icons/pythonIcon.png"));
-	stagrSettingsAction->setIcon(QIcon("icons/stagrSettingsIcon.png"));
+	startAction->setIcon(QIcon(":icons/startIcon.png"));
+	settingsAction->setIcon(QIcon(":icons/settingsIcon.png"));
+	startEditorAction->setIcon(QIcon(":icons/pythonIcon.png"));
+	stagrSettingsAction->setIcon(QIcon(":icons/stagrSettingsIcon.png"));
 	toolBar = addToolBar("mainToolBar");
-	//toolBar->addAction(loadSequencesAction);
 	toolBar->addAction(startAction);
 	toolBar->addAction(settingsAction);
 	toolBar->addAction(startEditorAction);
@@ -118,13 +115,19 @@ void StagrMainWindow::createToolBar()
 QString StagrMainWindow::runBlastn(QString queryFilename, QString referenceFilename)
 {
 	QProcess *blastn = new QProcess(this);
-	//QStringList arguments;
 	
 	blastnArguments = blastnSettingsDialog->blastSettingsPatrameterString(queryFilename, referenceFilename);
 	
 	QString result = "";
-	blastn->start("blastn", blastnArguments);
+	blastn->start(pathSettingsDialog->blastnPath(), blastnArguments);
 	blastn->waitForFinished(-1);
+
+	if( blastn->error() == QProcess::FailedToStart )
+	{
+		alert("Blastn failed to start. Please specify the correct path in the settings menu.");
+		return "";
+	}
+
 	result = blastn->readAll();
 	return result;
 }
@@ -133,9 +136,15 @@ QString StagrMainWindow::runBlat(QString queryFilename, QString referenceFilenam
 {
 	QProcess *blat = new QProcess(this);
 	blatArguments = blatSettingsDialog->blatSettingsPatrameterString(queryFilename, referenceFilename);
-	QString result = "";
-	blat->start("blat", blatArguments);
+
+	blat->start(pathSettingsDialog->blatPath(), blatArguments);
 	blat->waitForFinished(-1);
+
+	if( blat->error() == QProcess::FailedToStart )
+	{
+		alert("Blat failed to start. Please specify the correct path in the settings menu.");
+		return "";
+	}
 	
 	QFile file("out");
 	
@@ -151,9 +160,11 @@ QString StagrMainWindow::runBlat(QString queryFilename, QString referenceFilenam
 		return "";
 	}
 	
+	QString result = "";
 	QTextStream blatOutputStream( &file );
 	result = blatOutputStream.readAll();
 	QFile::remove("out");
+	
 	return result;
 }
 
@@ -164,7 +175,7 @@ void StagrMainWindow::alert(QString text)
  	msgBox.exec();
 }
 
-bool StagrMainWindow::runFilteringAlgorithm(QString input, QString algorithmFilename)
+bool StagrMainWindow::runFilteringAlgorithm(QString input, QString script)
 {
 	//initialize Python interpreter
 	Py_Initialize();
@@ -185,77 +196,54 @@ bool StagrMainWindow::runFilteringAlgorithm(QString input, QString algorithmFile
 			aligner = "blat";
 			break;
 	}
-	list = runPythonFunction(QString("output2dict.py"), aligner, argument);
 	
-	if(list == NULL)
+	QFile file(":/output2dict.py");
+	
+	if(!file.exists())
 	{
-		alert("Couldn't convert local-alignment results to a list");
+		alert("Error: the file with blat output is missing.");
 		return false;
 	}
 	
-	output = runPythonFunction(QString("script.py"), QString("annotate"), list); // algorithmFilename
+	if(!file.open( QIODevice::ReadOnly | QIODevice::Text ))
+	{
+		alert("Error: couldn't open the file with blat output.");
+		return false;
+	}
 	
-	if( hsps == NULL ) delete hsps;
+	QString converter = "";
+	QTextStream converterOutputStream( &file );
+	converter = converterOutputStream.readAll();
+	
+	list = runPythonFunction(converter, aligner, argument);
+	
+	if(list == NULL)
+	{
+		alert("Couldn't convert the output of a local-alignment heuristic results into a list.");
+		return false;
+	}
+	
+	//run the annotation script
+	output = runPythonFunction(script, QString("annotate"), list);
+	
+	if(output == NULL)
+	{
+		alert("The annotation script produced no results");
+		return false;
+	}
+	
+	if( hsps != NULL ) delete hsps;
 	
 	hsps = new HSPs;
+	
+	//save the annotation in hsps object
 	QString loadStatus = hsps->loadData(output);
+	
 	if( loadStatus != "" )
 	{
 		alert(loadStatus);
 		return false;
 	}
-	
-	if(output == NULL)
-	{
-		alert("Couldn't run the annotation script");
-		return false;
-	}
-	
-	PyObject *key, *value;
-	filteredAlignments = new QVector< QMap<QString,QString> >(0);
-	if( PyList_Size(output) < 1 )
-	{
-		alert("The annotation script did not return any relevant data");
-		return false;
-	}
-	for( unsigned i = 0; i < PyList_Size(output); ++i)
-	{
-		PyObject *dictionary = PyList_GetItem(output, i);
-		
-		Py_ssize_t pos = 0;
-		QMap<QString, QString> filteredAlignment;
-		
-		
-		while (PyDict_Next(dictionary, &pos, &key, &value))
-		{
-			if(!PyString_Check(key))
-			{
-				alert("error: key is not a string");
-				return false;
-			}
-			
-			if(PyInt_Check(value))
-			{
-				filteredAlignment[PyString_AsString(key)] = QString::number(PyInt_AsLong(value));
-			}
-			else if(PyFloat_Check(value))
-			{
-				filteredAlignment[QString(PyString_AsString(key))] = QString::number(PyFloat_AsDouble(value));
-			}
-			else if(PyString_Check(value))
-			{
-				filteredAlignment[PyString_AsString(key)] = QString(PyString_AsString(value));
-			}
-			else
-			{
-				alert("conversion error: expected int, float, or string");
-				return false;
-			}
-		
-		}
-		filteredAlignments->append(filteredAlignment);
-	}
-	numAlignments = PyList_Size(output);
 	
 	PyErr_Clear();
  	Py_Finalize();
@@ -264,7 +252,12 @@ bool StagrMainWindow::runFilteringAlgorithm(QString input, QString algorithmFile
 
 bool StagrMainWindow::runStagr()
 {
-	QString result("");
+	if( (precursorFilename == "")||(productFilename == "") )
+	{
+		alert("please specify input files");
+	}
+
+	QString result = "";
 	
 	switch(currentAligner)
 	{
@@ -276,64 +269,47 @@ bool StagrMainWindow::runStagr()
 			break;
 	}
 	
-	QFile file("script.py");
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    out << scriptEditDialog->getScript();
-    file.close();
-    
-	if(runFilteringAlgorithm(result, "annotate.py") == NULL) return false;
+	if( runFilteringAlgorithm(result, scriptEditDialog->getScript()) == NULL ) return false;
 
 	createTable();
 	return true;
 }
 
-PyObject *StagrMainWindow::runPythonFunction(QString filename, QString functionname, PyObject *argument)
+PyObject *StagrMainWindow::runPythonFunction(QString script, QString functionname, PyObject *argument)
 {
 
 	PyObject *pValue;
  	
-	//redirect output to file (simplify)
- 	
+	//redirect output to file	
  	PyRun_SimpleString("import sys");
- 	//PyRun_SimpleString("sys.stdout = open('python_out.log','w')");
  
-
-
-
-	//Get a reference to the main module.
  	PyObject* mainModule = PyImport_AddModule("__main__");
  	char const* redirectErrorOutput = "class StdoutCatcher:\n  def __init__(self):\n    self.data = ''\n  def write(self, stuff):\n   self.data = self.data + stuff\ncatcher = StdoutCatcher()\nsys.stderr = catcher";
  	PyRun_SimpleString(redirectErrorOutput);
  	
-	//Get the main module's dictionary and make a copy of it.
  	PyObject* mainDict = PyModule_GetDict(mainModule);
  	PyObject* mainDictCopy = PyDict_Copy(mainDict);
  	
-	//Execute two different files of
-  	//Python code in separate environments
- 	FILE* file_1 = fopen(filename.toStdString().c_str(), "r");
- 	PyRun_File(file_1, filename.toStdString().c_str(), Py_file_input, mainDict, mainDict);
+ 	PyRun_String(script.toStdString().c_str(), Py_file_input, mainDict, mainDict);
  	
  	PyObject *pFunc = PyDict_GetItemString(mainDict, functionname.toStdString().c_str());
  	
  	if (PyCallable_Check(pFunc)) 
-     {
-     	PyObject *pArgs = PyTuple_New(1);
-     	PyTuple_SetItem(pArgs, 0, argument);
-       	pValue = PyObject_CallObject(pFunc, pArgs);//argument
-     }
-     else 
-     {
-        PyErr_Print();
+    {
+    	PyObject *pArgs = PyTuple_New(1);
+    	PyTuple_SetItem(pArgs, 0, argument);
+    	pValue = PyObject_CallObject(pFunc, pArgs);
+    }
+    else 
+    {
+    	PyErr_Print();
 		PyObject* catcher = PyObject_GetAttrString(mainModule, "catcher");
 		PyObject* output = PyObject_GetAttrString(catcher, "data");
     	alert(PyString_AsString(output));
  
-        return NULL;
-     }
- 	
-        
+    	return NULL;
+    }
+    
  	return pValue;
 }
 
@@ -352,7 +328,10 @@ void StagrMainWindow::openSettingsDialog()
 
 void StagrMainWindow::openMDialogMultipleMatches()
 {
-	//table
+
+	if(table == NULL) return;
+	
+	//Table
 	const QModelIndexList list = table->selectionModel()->selectedRows();
 	if( list.count() == 0 )
 		return;
@@ -378,8 +357,8 @@ void StagrMainWindow::openMDialogMultipleMatches()
 		delete multipleMatchesDialog;
 	multipleMatchesDialog = new MultipleMatchesDialog(this, hsps, precursorIds, productIds,
 													  pullOutFastaSequence(precursorFilename, precursorId), 
-													  pullOutFastaSequence(productFilename, productId),  
-													  filteredAlignments);
+													  pullOutFastaSequence(productFilename, productId) 
+													  );
 													  
 	multipleMatchesDialog->show();
 	multipleMatchesDialog->raise();
@@ -399,6 +378,11 @@ void StagrMainWindow::openBlatSettingsDialog()
 void StagrMainWindow::openScriptEditor()
 {
 	scriptEditDialog->exec();
+}
+
+void StagrMainWindow::openPathSettingsDialog()
+{
+	pathSettingsDialog->exec();
 }
 
 void StagrMainWindow::getAlignmentsSummary()
@@ -490,6 +474,7 @@ void StagrMainWindow::createMenus()
 {
 	fileMenu = menuBar()->addMenu("File");
 	alignmentMenu = menuBar()->addMenu("Alignment");
+	setPathsMenu = menuBar()->addMenu("Set Paths");
 	
 	getPrecursorFilenameAction = new QAction("Load Precursor Contigs", this);
 	getProductFilenameAction = new QAction("Load Product Contigs", this);
@@ -497,6 +482,7 @@ void StagrMainWindow::createMenus()
 	selectBlastnAction->setCheckable(true);
 	selectBlatAction = new QAction("Blat", this);
 	selectBlatAction->setCheckable(true);
+	openPathSettingsAction = new QAction("Set Paths", this);
 	
 	connect(getPrecursorFilenameAction, SIGNAL(triggered()), this,
 			SLOT(getPrecursorFilename()));
@@ -510,6 +496,9 @@ void StagrMainWindow::createMenus()
 	connect(selectBlatAction, SIGNAL(triggered()), this,
 			SLOT(selectBlat()));
 
+	connect(openPathSettingsAction, SIGNAL(triggered()), this,
+			SLOT(openPathSettingsDialog()));
+
 	fileMenu->addAction(getPrecursorFilenameAction);
 	fileMenu->addAction(getProductFilenameAction);	
 	
@@ -522,6 +511,8 @@ void StagrMainWindow::createMenus()
 	
 	alignmentMenu->addAction(selectBlastnAction);
 	alignmentMenu->addAction(selectBlatAction);
+	
+	setPathsMenu->addAction(openPathSettingsAction);
 }
 
 void StagrMainWindow::selectBlastn()
@@ -545,9 +536,11 @@ QString StagrMainWindow::pullOutFastaSequence(QString filename, QString id)
 		 return "";
 	}
 	
-	QString line("");
-	QString sequence("");
+	QString line = "";
+	QString sequence = "";
+	
 	bool foundId = false;
+	
 	while( !stream.atEnd() )
 	{
 		line = stream.readLine();
@@ -561,6 +554,8 @@ QString StagrMainWindow::pullOutFastaSequence(QString filename, QString id)
 		}
 		if(line == ">" + id) foundId = true;
 	}
+	
 	fastaFile.close();
+	
 	return sequence;
 }

@@ -24,7 +24,7 @@
 
 
 MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QSet<QString> precursorIds, QSet<QString> productIds,
-							 QString precursorSequence, QString productSequence, QVector< QMap<QString,QString> > *filteredAlignments)
+							 QString precursorSequence, QString productSequence)
 	:QDialog(parent)
 {
 
@@ -32,15 +32,12 @@ MultipleMatchesDialog::MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QSet<Q
 	precursorLoci = new HspLoci(newHsps, "precursorStart", "precursorEnd", "productId");
 	productLoci = new HspLoci(newHsps, "productStart", "productEnd", "precursorId");
 	
-	alignmentsPairContigs = new QVector< QMap<QString,QString> >(0);
-	alignmentsDirection = new QVector<Direction>(0);
 	
-	newHsps->printTable();
-	tableWithRelevantMatches = new Table(NULL, newHsps);
-	newHsps->printTable();
+	summaryTable = new Table(NULL, newHsps);
+	
 	mainTab = new QTabWidget(this);
 	
-	mainTab->addTab(tableWithRelevantMatches, "Summary");
+	mainTab->addTab(summaryTable, "Summary");
 	
 	if(precursorSequence != "")
 	{

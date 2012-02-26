@@ -4,10 +4,9 @@
 #include<QtCore>
 #include<QColor>
 
-//class QColor;
-
 class ContigData
 {
+
 public: 
 	ContigData();
 	int checkPosition(unsigned U, unsigned D);

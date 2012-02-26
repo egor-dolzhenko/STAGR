@@ -15,39 +15,30 @@
 //	You should have received a copy of the GNU General Public License
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATCHESVIEW_H
-#define MATCHESVIEW_H
+#ifndef PATHSETTINGSDIALOG_H
+#define PATHSETTINGSDIALOG_H
 
-#include <QGraphicsView>
+#include <QDialog>
 
-class QGraphicsScene;
+class QLineEdit;
+class QPushButton;
 
-class MatchesView : public QGraphicsView
+class PathSettingsDialog : public QDialog
 {
-	Q_OBJECT
+	Q_OBJECT;
 	
-public: 
-	MatchesView(QWidget* parent, int *matchesStart, int *matchesEnd, 
-				int *matchesSubjectStart, int *matchesSubjectEnd, 
-				int queryLength, int subjectLength, int numberOfRelevantRecords);
+public:
+	PathSettingsDialog(QWidget *parent);
+	QString blastnPath();
+	QString blatPath();
 	
-protected:
-	virtual void resizeEvent(QResizeEvent* event);
-
 private:
-	QGraphicsScene *scene;
-	void createScene(int width, int height);
-	void clearScene();
-	int numberOfRecords;
-	int *myQueryStart;
-	int *myQueryEnd;
-	int *mySubjectStart;
-	int *mySubjectEnd;
-	int mySubjectLength;
-	int myQueryLength;
-	QColor colorForMatchIndex(int index);
-};
+	QLineEdit *blastnPathLineEdit;
+	QLineEdit *blatPathLineEdit;
+	QPushButton *okButton;
 	
+private slots:
+	void okPushed();
+};
 
-
-#endif //MATCHESVIEW_H
+#endif //PATHSETTINGSDIALOG_H

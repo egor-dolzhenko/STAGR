@@ -36,18 +36,15 @@ class MultipleMatchesDialog : public QDialog
 public:
 	MultipleMatchesDialog(QWidget *parent, HSPs *hsps, QSet<QString> precursorIds, 
 						  QSet<QString> productIds, QString precursorSequence, 
-						  QString productSequence, 
-						  QVector< QMap<QString,QString> > *filteredAlignments);
+						  QString productSequence
+						  );
 	~MultipleMatchesDialog();
 private:
 	QTabWidget *mainTab;
-	QStringList* querySubjectRecords;
-	Table *tableWithRelevantMatches;
+	Table *summaryTable;
 	SequenceView *sequenceView;
 	SequenceView *subjectView;
 	MultipleMatchesView *multipleMatchesView;
-	QVector< QMap<QString,QString> > *alignmentsPairContigs;
-	QVector<Direction> *alignmentsDirection;
 	HSPs *newHsps;
 	HspLoci *precursorLoci;
 	HspLoci *productLoci;

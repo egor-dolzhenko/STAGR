@@ -138,7 +138,7 @@ BlastnSettingsDialog::BlastnSettingsDialog(QWidget *parent) //, QString paramete
 	
 	connect(okButton, SIGNAL(clicked()), this, SLOT(okPushed()));
 	connect(openComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateExtensionComboBox(int)));
-	connect(matchscoreComboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(updageMismatchComboBox(int)));
+	connect(matchscoreComboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(updateMismatchComboBox(int)));
 	
 	setDefaults();
 }

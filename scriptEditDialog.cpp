@@ -30,12 +30,60 @@ ScriptEditDialog::ScriptEditDialog(QWidget *parent)
 	scriptHighlighter = new ScriptHighlighter(editor->document());
 	
 	editor->setText("import operator\n\ndef annotate(initialAlignment):\n  return initialAlignment");
-	QVBoxLayout *mainLayout = new QVBoxLayout;
-	mainLayout->addWidget(editor);
+	
+	saveButton = new QPushButton("Save Script");
+	loadButton = new QPushButton("Load Script");
+	
+	QGridLayout *mainLayout = new QGridLayout;
+	
+	mainLayout->addWidget(editor, 0, 0, 2, 2);
+	mainLayout->addWidget(saveButton, 3, 0);
+	mainLayout->addWidget(loadButton, 3, 1);
+	
+	//QVBoxLayout *mainLayout = new QVBoxLayout;
+	//mainLayout->addWidget(editor);
 	setLayout(mainLayout);
+	
+	connect(saveButton, SIGNAL(clicked()), this, SLOT(saveScript()));
+	connect(loadButton, SIGNAL(clicked()), this, SLOT(loadScript()));
 }
 
 QString ScriptEditDialog::getScript()
 {
 	return editor->toPlainText();
+}
+
+void ScriptEditDialog::saveScript()
+{
+	QString saveFilename = QFileDialog::getSaveFileName(this, "Save Script", QDir::currentPath(), "Python files (*.py);;All files (*.*)");
+	//qDebug() << saveFilename;
+	if(saveFilename != "")
+	{
+		QFile file(saveFilename);
+		if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+         return;
+         
+         QTextStream in(&file);
+         in << getScript();
+         file.close();
+	}
+}
+
+void ScriptEditDialog::loadScript()
+{
+	QString loadFilename = QFileDialog::getOpenFileName(this, "Load Script", QDir::currentPath(), "Python files (*.py);;All files (*.*)");
+	qDebug() << loadFilename;
+	if(loadFilename != "")
+	{
+		QFile file(loadFilename);
+		if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+         return;
+        
+        QTextStream out( &file );
+		editor->setText(out.readAll());
+
+         //QTextStream out(&file);
+         //out << getScript();
+         file.close();
+	}	
 }
