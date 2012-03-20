@@ -333,7 +333,8 @@ void SequenceView::keyPressEvent(QKeyEvent *event)
 	  if( nucleotideWidth >= 8) alwaysShowNucleotides = true;
 	  if( nucleotideWidth <= 11)
 	  {
-	    nucleotideWidth++; resizeEvent(&QResizeEvent(size(), size()));
+	    QResizeEvent *re = new QResizeEvent(size(), size());
+	    nucleotideWidth++; resizeEvent(re);
 	  }
 	}
 	if( (event->key() == Qt::Key_Minus) && (event->modifiers() == Qt::ControlModifier) )  
@@ -347,7 +348,8 @@ void SequenceView::keyPressEvent(QKeyEvent *event)
 	  if( nucleotideWidth > 1) 
 	  {
 	    nucleotideWidth--; 
-	    resizeEvent(&QResizeEvent(size(), size()));
+	    QResizeEvent *re = new QResizeEvent(size(), size());
+	    resizeEvent(re);
 	  }
 	}	
 }

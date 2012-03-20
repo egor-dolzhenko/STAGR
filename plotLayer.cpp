@@ -2,7 +2,7 @@
 
 #define PI 3.14159
 
-Region::Region(unsigned radius, unsigned width, qreal initialAngle, 
+SRegion::SRegion(unsigned radius, unsigned width, qreal initialAngle, 
 			   qreal terminalAngle, qreal upstreamNeighborTerminalAngle, 
 			   qreal donwstreamNeighborInitialAngle, QColor color)
 			   : QGraphicsPathItem(NULL)
@@ -44,20 +44,20 @@ Region::Region(unsigned radius, unsigned width, qreal initialAngle,
 
 }
 
-void Region::arc(QPainterPath &path, unsigned radius, qreal initialAngle,
+void SRegion::arc(QPainterPath &path, unsigned radius, qreal initialAngle,
 			 qreal terminalAngle)
 {
 	QRect pathRectangle(-radius, -radius, 2*radius, 2*radius);	
 	path.arcTo(pathRectangle, initialAngle, terminalAngle - initialAngle);
 }
 
-qreal Region::max(qreal a, qreal b)
+qreal SRegion::max(qreal a, qreal b)
 {
 	if( a > b ) return a;
 	return b;
 }
 
-qreal Region::min(qreal a, qreal b)
+qreal SRegion::min(qreal a, qreal b)
 {
 	if( a < b ) return a;
 	return b;
@@ -101,16 +101,16 @@ Contig::Contig(qreal newStart, qreal newEnd, QVector<qreal> newInitialAngles, QV
 
 void Contig::plotRegions(QGraphicsScene &scene, unsigned radius)
 {
-	Region *region;
+	SRegion *region;
 	unsigned size = initialAngles.size();
 	if( size == 1 )
 	{
-		region = new Region(radius, 40, initialAngles[0], terminalAngles[0], initialAngles[0], terminalAngles[0], colors[0]);
+		region = new SRegion(radius, 40, initialAngles[0], terminalAngles[0], initialAngles[0], terminalAngles[0], colors[0]);
 		scene.addItem(region);
 		return;
 	} else
 	{
-		region = new Region(radius, 40, initialAngles[0], terminalAngles[0], initialAngles[0], initialAngles[1], colors[0]);
+		region = new SRegion(radius, 40, initialAngles[0], terminalAngles[0], initialAngles[0], initialAngles[1], colors[0]);
 		scene.addItem(region);
 	}
 	
@@ -120,11 +120,11 @@ void Contig::plotRegions(QGraphicsScene &scene, unsigned radius)
 		qreal term = terminalAngles[i];
 		QColor color = colors[i];
 		
-		region = new Region(radius, 40, initialAngles[i], terminalAngles[i], terminalAngles[i - 1], initialAngles[i + 1], colors[i]);
+		region = new SRegion(radius, 40, initialAngles[i], terminalAngles[i], terminalAngles[i - 1], initialAngles[i + 1], colors[i]);
 		scene.addItem(region);
 	}
 	
-	region = new Region(radius, 40, initialAngles[size - 1], terminalAngles[size - 1], terminalAngles[size - 2], terminalAngles[size - 1], colors[size - 1]);
+	region = new SRegion(radius, 40, initialAngles[size - 1], terminalAngles[size - 1], terminalAngles[size - 2], terminalAngles[size - 1], colors[size - 1]);
 	scene.addItem(region);
 	
 }

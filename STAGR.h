@@ -38,7 +38,7 @@
 #include "hsp.h"
 
 //Location of the header file for including Python interpreter into STAGR
-#include <Python/Python.h>
+#include <Python.h>
 
 //Classes used in the definition of StagrMainWindow class
 class QTabWidget;

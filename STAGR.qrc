@@ -8,6 +8,5 @@
      <file>MAC.fasta</file>
      <file>MIC.fasta</file>
      <file>output2dict.py</file>
-     <file>script.py</file>
  </qresource>
 </RCC>

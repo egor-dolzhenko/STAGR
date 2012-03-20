@@ -9,11 +9,11 @@
 #include "contigData.h"
 #include "layerArcs.h"
 
-class Region : public QGraphicsPathItem
+class SRegion : public QGraphicsPathItem
 {
 
 public:
-	Region(unsigned radius, unsigned width, qreal initialAngle, 
+	SRegion(unsigned radius, unsigned width, qreal initialAngle, 
 		   qreal terminalAngle, qreal upstreamNeighborTerminalAngle, 
 		   qreal donwstreamNeighborInitialAngle, QColor color);
 private:		   

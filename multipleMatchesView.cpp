@@ -16,7 +16,7 @@
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
-#include "MultipleMatchesView.h"
+#include "multipleMatchesView.h"
 #include <algorithm>
 #include <vector>
 #include <QtCore>
@@ -342,15 +342,17 @@ void MultipleMatchesView::keyPressEvent(QKeyEvent *event)
 	{ 
 	  if( scale > 5) 
 	  {
-	    scale -= 5; 
-	    resizeEvent(&QResizeEvent(size(), size()));
+	    scale -= 5;
+	    QResizeEvent *re = new QResizeEvent(size(), size());  
+	    resizeEvent(re);
 	  }
 	}
 	if( (event->key() == Qt::Key_Minus) && (event->modifiers() == Qt::ControlModifier) )  
 	{
 	  if( scale <= 500)
 	  {
-	    scale += 5; resizeEvent(&QResizeEvent(size(), size())); //qDebug() << nucleotideWidth;
+	    QResizeEvent *re = new QResizeEvent(size(), size());
+	    scale += 5; resizeEvent(re); //qDebug() << nucleotideWidth;
 	  }
 	}	
 }

@@ -22,7 +22,7 @@
 #ifndef HSP_H
 #define HSP_H
 
-#include <Python/Python.h>
+#include <Python.h>
 #include <QtCore>
 
 enum Direction {LEFT, RIGHT};
